@@ -1,6 +1,6 @@
-# Event Discovery Calendar App
+# Calendar Website (Next.js)
 
-A comprehensive location-based event discovery mobile application built with React Native and Expo that automatically finds and organizes local events based on user interests and location.
+A minimal Next.js site that shows a calendar UI with events.
 
 ## ✨ Features
 
@@ -47,16 +47,13 @@ A comprehensive location-based event discovery mobile application built with Rea
 - **Storage**: AsyncStorage for offline caching
 - **HTTP Client**: Axios for API requests
 
-## Prerequisites
+## Run locally
 
-Before running this project, make sure you have the following installed:
-
-1. **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
-2. **npm** or **yarn** package manager
-3. **Expo CLI**: `npm install -g @expo/cli`
-4. **iOS Simulator** (macOS only) or **Android Emulator/Device**
-5. **Firebase Project** - For authentication and database
-6. **Eventbrite API Key** - For event data (optional, app works with sample data)
+```bash
+npm install
+npm run dev
+# open http://localhost:3000
+```
 
 ## Installation & Setup
 
@@ -84,12 +81,12 @@ Before running this project, make sure you have the following installed:
    - Update `src/services/api.ts` with your API key
    - Create a `.env` file for sensitive keys (see .env.example)
 
-5. **Start the development server**:
-   ```bash
-   npm start
-   # or
-   expo start
-   ```
+## Build
+
+```bash
+npm run build
+npm start
+```
 
 6. **Run on specific platforms**:
    ```bash
@@ -147,28 +144,14 @@ The app integrates with multiple event data sources:
 - **Features**: Social integration, event discussions
 - **Integration**: Facebook Graph API
 
-## Project Structure
+## Project structure
 
 ```
-src/
-├── components/          # Reusable UI components
-│   ├── EventCard.tsx   # Event display component with save functionality
-│   └── LocationPicker.tsx # Location search and selection component
-├── screens/            # Main app screens
-│   ├── CalendarScreen.tsx  # Calendar view with events
-│   ├── DiscoveryScreen.tsx # Event discovery and filtering
-│   ├── SavedScreen.tsx     # Saved/bookmarked events
-│   └── ProfileScreen.tsx   # User settings and preferences
-├── services/           # API calls and business logic
-│   ├── api.ts              # Eventbrite API integration
-│   ├── authService.ts      # Firebase authentication
-│   ├── eventService.ts     # Event saving/bookmarking
-│   ├── locationService.ts  # GPS location handling
-│   ├── notificationService.ts # Push notifications
-│   └── calendarService.ts  # Native calendar integration
-├── types/             # TypeScript type definitions
-│   └── event.ts       # Event and app type definitions
-└── index.ts          # Main exports file
+app/
+  layout.tsx
+  page.tsx        # Calendar UI with sample events
+public/
+  favicon.ico
 ```
 
 ## Usage Guide
@@ -234,18 +217,9 @@ src/
 - **Bidirectional**: See your calendar events in the app
 - **Multiple Calendars**: Support for work, personal, etc.
 
-## Testing
-
-```bash
-# Run tests
-npm test
-
-# Run linting
-npm run lint
-
-# Type checking
-npx tsc --noEmit
-```
+## Notes
+- Pure web Next.js app. No Expo/React Native.
+- Replace sample events with your data source as needed.
 
 ## Building for Production
 
