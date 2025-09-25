@@ -20,15 +20,36 @@ export default function Page() {
   const [currentDate, setCurrentDate] = React.useState(() => new Date());
   const [events, setEvents] = React.useState<Event[]>([]);
   const [selectedDate, setSelectedDate] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    // Sample events - replace with API/data source as needed
-    setEvents([
-      { id: 1, title: 'Tech Conference 2025', date: '2025-09-15', time: '9:00 AM', location: 'Convention Center', category: 'technology', description: 'Annual technology conference featuring latest innovations' },
-      { id: 2, title: 'Startup Pitch', date: '2025-09-18', time: '2:00 PM', location: 'Business Hub', category: 'business', description: 'Innovative startups pitch their ideas' },
-      { id: 3, title: 'AI Workshop', date: '2025-09-22', time: '10:00 AM', location: 'Tech University', category: 'technology', description: 'Hands-on AI basics' },
-      { id: 4, title: 'Jazz Festival', date: '2025-09-20', time: '7:00 PM', location: 'Downtown Plaza', category: 'music', description: 'Live jazz performances' },
-    ]);
+    let cancelled = false;
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch('/api/events', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to load events');
+        const data = await res.json();
+        const incoming: Event[] = (data?.events || []).map((e: any) => ({
+          id: Number(e.id) || Math.floor(Math.random() * 1e9),
+          title: e.title,
+          date: e.date,
+          time: e.time || '',
+          location: e.location || '',
+          category: e.category || 'music',
+          description: e.description || ''
+        }));
+        if (!cancelled) setEvents(incoming);
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message || 'Failed to load events');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
   }, []);
 
   // Force September 2025 as default visible month if today not in 2025-09, to mirror demo
@@ -107,6 +128,12 @@ export default function Page() {
               <div style={styles.monthYear}>{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</div>
               <button onClick={nextMonth} style={styles.navBtn}>›</button>
             </div>
+            {loading && (
+              <div style={{ padding: 12, color: '#fff', background: '#007AFF' }}>Loading latest events…</div>
+            )}
+            {error && (
+              <div style={{ padding: 12, color: '#fff', background: '#FF3B30' }}>{error}</div>
+            )}
             <div style={styles.weekHeader}>
               {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
                 <div key={d} style={styles.weekdayHeader}>{d}</div>
