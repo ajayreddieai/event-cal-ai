@@ -10,6 +10,7 @@ type Event = {
   location: string;
   category: string;
   description: string;
+  url?: string;
 };
 
 const monthNames = [
@@ -39,7 +40,8 @@ export default function Page() {
           time: e.time || '',
           location: e.location || '',
           category: e.category || 'music',
-          description: e.description || ''
+          description: e.description || '',
+          url: e.url
         }));
         if (!cancelled) setEvents(incoming);
       } catch (e: any) {
@@ -150,10 +152,26 @@ export default function Page() {
               )}
               {selectedEvents.map(ev => (
                 <div key={ev.id} style={styles.eventCard}>
-                  <div style={{ fontWeight: 600, marginBottom: 6 }}>{ev.title}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                    <a href={ev.url} target="_blank" rel="noopener noreferrer" style={styles.eventLink}>
+                      {ev.title}
+                    </a>
+                    {ev.url && (
+                      <a href={ev.url} target="_blank" rel="noopener noreferrer" style={styles.chipLink}>Link ↗</a>
+                    )}
+                  </div>
                   <div style={styles.eventMeta}>⏰ {ev.time}</div>
-                  <div style={{ ...styles.eventMeta, color: '#007AFF' }}>📍 {ev.location}</div>
-                  <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>{ev.category}</div>
+                  <div>
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(ev.location)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ ...styles.eventMeta, color: '#0A84FF', textDecoration: 'none' }}
+                    >
+                      📍 {ev.location}
+                    </a>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#8E8E93', marginTop: 6 }}>{ev.category}</div>
                 </div>
               ))}
             </div>
@@ -179,7 +197,7 @@ function categoryStyle(category: string): React.CSSProperties {
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: '#000',
     padding: 20,
   },
   container: {
@@ -194,21 +212,23 @@ const styles: Record<string, React.CSSProperties> = {
   title: {
     fontSize: 36,
     margin: 0,
-    textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+    color: '#fff'
   },
   subtitle: {
     fontSize: 16,
-    opacity: 0.9,
+    opacity: 0.8,
     marginTop: 6,
+    color: '#E5E5EA'
   },
   card: {
-    background: '#fff',
+    background: '#111',
     borderRadius: 16,
-    boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
     overflow: 'hidden',
+    border: '1px solid #1C1C1E'
   },
   calHeader: {
-    background: '#007AFF',
+    background: '#0A84FF',
     color: '#fff',
     padding: 16,
     display: 'flex',
@@ -233,12 +253,12 @@ const styles: Record<string, React.CSSProperties> = {
     gridTemplateColumns: 'repeat(7, 1fr)'
   },
   weekdayHeader: {
-    background: '#f8f9fa',
+    background: '#1C1C1E',
     padding: '12px 4px',
     textAlign: 'center',
     fontWeight: 600,
-    color: '#666',
-    borderBottom: '1px solid #e0e0e0'
+    color: '#A1A1A6',
+    borderBottom: '1px solid #2C2C2E'
   },
   calendarGrid: {
     display: 'grid',
@@ -247,25 +267,25 @@ const styles: Record<string, React.CSSProperties> = {
   calendarDay: {
     minHeight: 110,
     padding: 6,
-    borderRight: '1px solid #e0e0e0',
-    borderBottom: '1px solid #e0e0e0',
+    borderRight: '1px solid #2C2C2E',
+    borderBottom: '1px solid #2C2C2E',
     cursor: 'pointer'
   },
   calendarDayOther: {
     minHeight: 110,
     padding: 6,
-    borderRight: '1px solid #e0e0e0',
-    borderBottom: '1px solid #e0e0e0',
-    background: '#fafafa'
+    borderRight: '1px solid #2C2C2E',
+    borderBottom: '1px solid #2C2C2E',
+    background: '#0C0C0D'
   },
   dateNumber: {
     fontSize: 12,
     fontWeight: 700,
-    color: '#333',
+    color: '#E5E5EA',
     marginBottom: 6,
   },
   eventItem: {
-    background: '#007AFF',
+    background: '#0A84FF',
     color: '#fff',
     padding: '3px 6px',
     borderRadius: 10,
@@ -276,32 +296,44 @@ const styles: Record<string, React.CSSProperties> = {
     textOverflow: 'ellipsis'
   },
   sidebar: {
-    background: '#fff',
+    background: '#111',
     borderRadius: 16,
-    boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
+    boxShadow: '0 10px 20px rgba(0,0,0,0.4)',
     padding: 16,
-    height: 'fit-content'
+    height: 'fit-content',
+    border: '1px solid #1C1C1E'
   },
   sectionTitle: {
     fontWeight: 700,
     fontSize: 18,
     marginBottom: 12,
-    color: '#333'
+    color: '#fff'
   },
   eventList: {
     maxHeight: 420,
     overflowY: 'auto'
   },
   eventCard: {
-    background: '#f8f9fa',
-    borderLeft: '4px solid #007AFF',
+    background: '#1C1C1E',
+    borderLeft: '4px solid #0A84FF',
     padding: 12,
     borderRadius: 8,
     marginBottom: 10
   },
   eventMeta: {
     fontSize: 12,
-    color: '#666',
+    color: '#A1A1A6',
+  },
+  eventLink: {
+    color: '#fff',
+    textDecoration: 'none',
+    fontWeight: 600,
+  },
+  chipLink: {
+    color: '#0A84FF',
+    textDecoration: 'none',
+    fontSize: 12,
+    fontWeight: 600
   }
 };
 
