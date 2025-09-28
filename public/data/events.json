@@ -112,16 +112,6 @@
     },
     {
       "id": 12,
-      "title": "USNVRTHEM RELEASE PARTY",
-      "date": "2025-10-18",
-      "time": "6:00 PM",
-      "location": "Dope Men Social",
-      "category": "music",
-      "description": "'For My Dogs' Single Release party and Music Video watch party. Celebrating the release of the latest single 'Body' Yoko and Cris Streetz",
-      "url": "https://posh.vip/e/usnvrthem-release-party"
-    },
-    {
-      "id": 13,
       "title": "Danza Habibi - Sunset Party",
       "date": "2025-09-28",
       "time": "3:00 PM",
@@ -131,7 +121,7 @@
       "url": "https://posh.vip/e/danza-habibi-sunset-party"
     },
     {
-      "id": 14,
+      "id": 13,
       "title": "OG Nixin x Benda @TK Lounge - Tampa, FL",
       "date": "2025-10-11",
       "time": "9:00 PM",
@@ -141,7 +131,7 @@
       "url": "https://posh.vip/e/og-nixin-x-benda-tk-lounge-tampa-fl"
     },
     {
-      "id": 15,
+      "id": 14,
       "title": "Major Buc Suite Party Access",
       "date": "2025-09-28",
       "time": "10:00 AM",
@@ -151,7 +141,7 @@
       "url": "https://posh.vip/e/buc-suite-party-access"
     },
     {
-      "id": 16,
+      "id": 15,
       "title": "Soul Brunch @ Bula Kavananda",
       "date": "2025-10-05",
       "time": "11:00 AM",
@@ -159,6 +149,16 @@
       "category": "music",
       "description": "",
       "url": "https://posh.vip/e/soul-brunch-bula-kavananda"
+    },
+    {
+      "id": 16,
+      "title": "USNVRTHEM RELEASE PARTY",
+      "date": "2025-10-18",
+      "time": "6:00 PM",
+      "location": "Dope Men Social",
+      "category": "music",
+      "description": "'For My Dogs' Single Release party and Music Video watch party. Celebrating the release of the latest single 'Body' Yoko and Cris Streetz",
+      "url": "https://posh.vip/e/usnvrthem-release-party"
     },
     {
       "id": 17,
@@ -182,46 +182,36 @@
     },
     {
       "id": 1,
-      "title": "Jonas Brothers",
-      "date": "2025-10-22",
-      "time": "8:00 PM",
-      "location": "Benchmark International Arena (Formerly Amalie Arena)",
-      "category": "music",
-      "description": "Wed • Oct 22 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/jonas-brothers-tampa-tickets-10-22-2025/event/157658022/"
-    },
-    {
-      "id": 2,
-      "title": "Matisyahu",
-      "date": "2025-10-26",
-      "time": "8:00 PM",
-      "location": "Jannus Live",
-      "category": "music",
-      "description": "Sun • Oct 26 • Saint Petersburg, FL, USA",
-      "url": "https://www.stubhub.com/matisyahu-saint-petersburg-tickets-10-26-2025/event/159134518/"
-    },
-    {
-      "id": 3,
-      "title": "Reneé Rapp",
-      "date": "2025-10-27",
+      "title": "Doechii",
+      "date": "2025-10-25",
       "time": "8:00 PM",
       "location": "Yuengling Center",
       "category": "music",
-      "description": "Mon • Oct 27 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/renee-rapp-tampa-tickets-10-27-2025/event/158605052/"
+      "description": "Sat • Oct 25 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/doechii-tampa-tickets-10-25-2025/event/159348952/"
+    },
+    {
+      "id": 2,
+      "title": "Haunted Fest St. Pete with Disclosure - Friday Pass Only",
+      "date": "2025-10-31",
+      "time": "5:30 PM",
+      "location": "St. Pete Pier",
+      "category": "music",
+      "description": "Fri • Oct 31 • St Petersburg, FL, USA",
+      "url": "https://www.stubhub.com/haunted-fest-st-petersburg-tickets-10-31-2025/event/159190479/"
+    },
+    {
+      "id": 3,
+      "title": "Josiah Queen",
+      "date": "2025-11-01",
+      "time": "7:00 PM",
+      "location": "Yuengling Center",
+      "category": "music",
+      "description": "Sat • Nov 01 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/josiah-queen-tampa-tickets-11-1-2025/event/158978825/"
     },
     {
       "id": 4,
-      "title": "The Mars Volta",
-      "date": "2025-11-01",
-      "time": "7:00 PM",
-      "location": "Jannus Live",
-      "category": "music",
-      "description": "Sat • Nov 01 • Saint Petersburg, FL, USA",
-      "url": "https://www.stubhub.com/mars-volta-saint-petersburg-tickets-11-1-2025/event/157940535/"
-    },
-    {
-      "id": 5,
       "title": "Timmy Trumpet",
       "date": "2025-09-28",
       "time": "11:00 AM",
@@ -231,7 +221,7 @@
       "url": "https://www.stubhub.com/timmy-trumpet-tampa-tickets-9-28-2025/event/159144471/"
     },
     {
-      "id": 6,
+      "id": 5,
       "title": "I Set My Friends On Fire with Enthronement and Lilith's Demise",
       "date": "2025-09-28",
       "time": "6:00 PM",
@@ -241,7 +231,7 @@
       "url": "https://www.stubhub.com/i-set-my-friends-on-fire-tampa-tickets-9-28-2025/event/158744253/"
     },
     {
-      "id": 7,
+      "id": 6,
       "title": "The Bouncing Souls",
       "date": "2025-09-28",
       "time": "7:00 PM",
@@ -249,6 +239,16 @@
       "category": "music",
       "description": "Sun • Sep 28 • Saint Petersburg, FL, USA",
       "url": "https://www.stubhub.com/bouncing-souls-saint-petersburg-tickets-9-28-2025/event/158373685/"
+    },
+    {
+      "id": 7,
+      "title": "Lorna Shore",
+      "date": "2025-10-01",
+      "time": "6:30 PM",
+      "location": "Yuengling Center",
+      "category": "music",
+      "description": "Wed • Oct 01 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/lorna-shore-tampa-tickets-10-1-2025/event/158280067/"
     },
     {
       "id": 8,
@@ -262,16 +262,6 @@
     },
     {
       "id": 9,
-      "title": "Valery Meladze",
-      "date": "2025-10-01",
-      "time": "8:00 PM",
-      "location": "Palladium Theater St. Petersburg",
-      "category": "music",
-      "description": "Wed • Oct 01 • St Petersburg, FL, USA",
-      "url": "https://www.stubhub.com/valery-meladze-st-petersburg-tickets-10-1-2025/event/157713854/"
-    },
-    {
-      "id": 10,
       "title": "Madison Ryann Ward",
       "date": "2025-10-01",
       "time": "8:00 PM",
@@ -281,7 +271,7 @@
       "url": "https://www.stubhub.com/madison-ryann-ward-tampa-tickets-10-1-2025/event/159072841/"
     },
     {
-      "id": 11,
+      "id": 10,
       "title": "Freddie Gibbs",
       "date": "2025-10-03",
       "time": "7:00 PM",
@@ -291,7 +281,7 @@
       "url": "https://www.stubhub.com/freddie-gibbs-tampa-tickets-10-3-2025/event/159098274/"
     },
     {
-      "id": 12,
+      "id": 11,
       "title": "Rick Springfield",
       "date": "2025-10-03",
       "time": "8:00 PM",
@@ -301,7 +291,7 @@
       "url": "https://www.stubhub.com/rick-springfield-clearwater-tickets-10-3-2025/event/157269235/"
     },
     {
-      "id": 15,
+      "id": 12,
       "title": "Noga Erez",
       "date": "2025-10-03",
       "time": "8:30 PM",
@@ -311,97 +301,17 @@
       "url": "https://www.stubhub.com/noga-erez-saint-petersburg-tickets-10-3-2025/event/157582071/"
     },
     {
-      "id": 16,
-      "title": "Crowder",
-      "date": "2025-10-04",
-      "time": "7:00 PM",
-      "location": "Yuengling Center",
-      "category": "music",
-      "description": "Sat • Oct 04 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/crowder-tampa-tickets-10-4-2025/event/157600838/"
-    },
-    {
-      "id": 17,
-      "title": "ABBA The Concert - ABBA Tribute",
-      "date": "2025-10-04",
-      "time": "8:00 PM",
-      "location": "Ruth Eckerd Hall",
-      "category": "music",
-      "description": "Sat • Oct 04 • Clearwater, FL, USA",
-      "url": "https://www.stubhub.com/a-tribute-to-abba-clearwater-tickets-10-4-2025/event/157344488/"
-    },
-    {
-      "id": 18,
-      "title": "Marco Antonio Solis",
-      "date": "2025-10-04",
-      "time": "8:00 PM",
-      "location": "Benchmark International Arena (Formerly Amalie Arena)",
-      "category": "music",
-      "description": "Sat • Oct 04 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/marco-antonio-solis-tampa-tickets-10-4-2025/event/158480270/"
-    },
-    {
-      "id": 19,
-      "title": "NGHTMRE",
-      "date": "2025-10-04",
-      "time": "10:00 PM",
-      "location": "The Ritz Ybor",
-      "category": "music",
-      "description": "Sat • Oct 04 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/nghtmre-tampa-tickets-10-4-2025/event/159110049/"
-    },
-    {
-      "id": 20,
-      "title": "Steve Martin and Martin Short",
-      "date": "2025-10-05",
-      "time": "8:00 PM",
-      "location": "Ruth Eckerd Hall",
-      "category": "music",
-      "description": "Sun • Oct 05 • Clearwater, FL, USA",
-      "url": "https://www.stubhub.com/steve-martin-clearwater-tickets-10-5-2025/event/157111608/"
-    },
-    {
-      "id": 21,
-      "title": "Lil Tecca",
-      "date": "2025-10-07",
-      "time": "8:00 PM",
-      "location": "Jannus Live",
-      "category": "music",
-      "description": "Tue • Oct 07 • Saint Petersburg, FL, USA",
-      "url": "https://www.stubhub.com/lil-tecca-saint-petersburg-tickets-10-7-2025/event/158987852/"
-    },
-    {
-      "id": 22,
-      "title": "Kublai Khan TX",
+      "id": 13,
+      "title": "Air Supply",
       "date": "2025-10-08",
-      "time": "7:00 PM",
-      "location": "Jannus Live",
+      "time": "8:00 PM",
+      "location": "The Mahaffey Theater at Duke Energy Center for the Arts",
       "category": "music",
       "description": "Wed • Oct 08 • Saint Petersburg, FL, USA",
-      "url": "https://www.stubhub.com/kublai-khan-saint-petersburg-tickets-10-8-2025/event/158019171/"
+      "url": "https://www.stubhub.com/air-supply-saint-petersburg-tickets-10-8-2025/event/159032306/"
     },
     {
-      "id": 23,
-      "title": "Red Rocks Worship: The King is Coming Tour Pt. 2 - Tampa, FL",
-      "date": "2025-10-08",
-      "time": "7:00 PM",
-      "location": "South Bay Church",
-      "category": "music",
-      "description": "Wed • Oct 08 • Riverview, FL, USA",
-      "url": "https://www.stubhub.com/red-rocks-worship-riverview-tickets-10-8-2025/event/158960638/"
-    },
-    {
-      "id": 24,
-      "title": "Jon Batiste",
-      "date": "2025-10-08",
-      "time": "8:00 PM",
-      "location": "Ruth Eckerd Hall",
-      "category": "music",
-      "description": "Wed • Oct 08 • Clearwater, FL, USA",
-      "url": "https://www.stubhub.com/jon-batiste-clearwater-tickets-10-8-2025/event/158272422/"
-    },
-    {
-      "id": 27,
+      "id": 14,
       "title": "Dabin",
       "date": "2025-10-09",
       "time": "7:30 PM",
@@ -411,7 +321,7 @@
       "url": "https://www.stubhub.com/dabin-saint-petersburg-tickets-10-9-2025/event/158571886/"
     },
     {
-      "id": 28,
+      "id": 15,
       "title": "Collective Soul",
       "date": "2025-10-09",
       "time": "8:00 PM",
@@ -421,7 +331,7 @@
       "url": "https://www.stubhub.com/collective-soul-saint-petersburg-tickets-10-9-2025/event/159150911/"
     },
     {
-      "id": 29,
+      "id": 16,
       "title": "The Fray",
       "date": "2025-10-10",
       "time": "7:00 PM",
@@ -431,7 +341,17 @@
       "url": "https://www.stubhub.com/the-fray-saint-petersburg-tickets-10-10-2025/event/158617031/"
     },
     {
-      "id": 30,
+      "id": 17,
+      "title": "Marianas Trench",
+      "date": "2025-10-11",
+      "time": "6:00 PM",
+      "location": "Jannus Live",
+      "category": "music",
+      "description": "Sat • Oct 11 • Saint Petersburg, FL, USA",
+      "url": "https://www.stubhub.com/marianas-trench-saint-petersburg-tickets-10-11-2025/event/158167135/"
+    },
+    {
+      "id": 18,
       "title": "Gary Allan",
       "date": "2025-10-11",
       "time": "8:00 PM",
@@ -441,7 +361,17 @@
       "url": "https://www.stubhub.com/gary-allan-clearwater-tickets-10-11-2025/event/158484288/"
     },
     {
-      "id": 31,
+      "id": 19,
+      "title": "Twenty One Pilots",
+      "date": "2025-10-11",
+      "time": "8:00 PM",
+      "location": "MidFlorida Credit Union Amphitheatre at the Florida State Fairgrounds",
+      "category": "music",
+      "description": "Sat • Oct 11 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/twenty-one-pilots-tampa-tickets-10-11-2025/event/158513094/"
+    },
+    {
+      "id": 20,
       "title": "NOTD - TAMPA",
       "date": "2025-10-11",
       "time": "10:00 PM",
@@ -451,7 +381,7 @@
       "url": "https://www.stubhub.com/notd-tampa-tickets-10-11-2025/event/159249690/"
     },
     {
-      "id": 32,
+      "id": 21,
       "title": "Dustin Lynch",
       "date": "2025-10-12",
       "time": "11:00 AM",
@@ -461,7 +391,7 @@
       "url": "https://www.stubhub.com/dustin-lynch-tampa-tickets-10-12-2025/event/159187783/"
     },
     {
-      "id": 33,
+      "id": 22,
       "title": "Gabby's Dollhouse Live",
       "date": "2025-10-12",
       "time": "4:00 PM",
@@ -471,7 +401,17 @@
       "url": "https://www.stubhub.com/gabby-s-dollhouse-tampa-tickets-10-12-2025/event/158284586/"
     },
     {
-      "id": 34,
+      "id": 23,
+      "title": "Tedeschi Trucks Band",
+      "date": "2025-10-12",
+      "time": "6:30 PM",
+      "location": "The Baycare Sound at Coachman Park - Complex",
+      "category": "music",
+      "description": "Sun • Oct 12 • Clearwater Beach, FL, USA",
+      "url": "https://www.stubhub.com/tedeschi-trucks-band-clearwater-beach-tickets-10-12-2025/event/157000812/"
+    },
+    {
+      "id": 24,
       "title": "Shaboozey",
       "date": "2025-10-12",
       "time": "7:00 PM",
@@ -481,7 +421,17 @@
       "url": "https://www.stubhub.com/shaboozey-saint-petersburg-tickets-10-12-2025/event/158092245/"
     },
     {
-      "id": 35,
+      "id": 25,
+      "title": "Trevor Wallace",
+      "date": "2025-10-12",
+      "time": "7:00 PM",
+      "location": "Historic Duncan Auditorium",
+      "category": "music",
+      "description": "Sun • Oct 12 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/trevor-wallace-tampa-tickets-10-12-2025/event/159109372/"
+    },
+    {
+      "id": 26,
       "title": "Ice Cube",
       "date": "2025-10-12",
       "time": "8:00 PM",
@@ -491,7 +441,7 @@
       "url": "https://www.stubhub.com/ice-cube-tampa-tickets-10-12-2025/event/158910283/"
     },
     {
-      "id": 36,
+      "id": 27,
       "title": "T-Pain",
       "date": "2025-10-14",
       "time": "7:00 PM",
@@ -501,7 +451,7 @@
       "url": "https://www.stubhub.com/t-pain-clearwater-beach-tickets-10-14-2025/event/158441489/"
     },
     {
-      "id": 37,
+      "id": 28,
       "title": "Gov't Mule",
       "date": "2025-10-14",
       "time": "8:00 PM",
@@ -511,7 +461,7 @@
       "url": "https://www.stubhub.com/gov-t-mule-clearwater-tickets-10-14-2025/event/158545682/"
     },
     {
-      "id": 38,
+      "id": 29,
       "title": "The Band Camino",
       "date": "2025-10-14",
       "time": "8:00 PM",
@@ -521,7 +471,7 @@
       "url": "https://www.stubhub.com/the-band-camino-saint-petersburg-tickets-10-14-2025/event/158568855/"
     },
     {
-      "id": 39,
+      "id": 30,
       "title": "Thundercat",
       "date": "2025-10-15",
       "time": "8:00 PM",
@@ -531,7 +481,7 @@
       "url": "https://www.stubhub.com/thundercat-saint-petersburg-tickets-10-15-2025/event/158446315/"
     },
     {
-      "id": 40,
+      "id": 31,
       "title": "Phantogram",
       "date": "2025-10-16",
       "time": "7:00 PM",
@@ -541,7 +491,7 @@
       "url": "https://www.stubhub.com/phantogram-saint-petersburg-tickets-10-16-2025/event/158167142/"
     },
     {
-      "id": 41,
+      "id": 32,
       "title": "PEARCY DEMARTINI Performing The Music Of RATT",
       "date": "2025-10-17",
       "time": "7:00 PM",
@@ -551,7 +501,17 @@
       "url": "https://www.stubhub.com/stephen-pearcy-saint-petersburg-tickets-10-17-2025/event/158392312/"
     },
     {
-      "id": 42,
+      "id": 33,
+      "title": "Magdalena Bay",
+      "date": "2025-10-17",
+      "time": "8:00 PM",
+      "location": "Jannus Live",
+      "category": "music",
+      "description": "Fri • Oct 17 • Saint Petersburg, FL, USA",
+      "url": "https://www.stubhub.com/magdalena-bay-saint-petersburg-tickets-10-17-2025/event/157256743/"
+    },
+    {
+      "id": 34,
       "title": "Cartel",
       "date": "2025-10-18",
       "time": "5:30 PM",
@@ -561,7 +521,7 @@
       "url": "https://www.stubhub.com/cartel-tampa-tickets-10-18-2025/event/158374891/"
     },
     {
-      "id": 43,
+      "id": 35,
       "title": "Yes",
       "date": "2025-10-18",
       "time": "8:00 PM",
@@ -571,57 +531,7 @@
       "url": "https://www.stubhub.com/yes-clearwater-tickets-10-18-2025/event/158493650/"
     },
     {
-      "id": 44,
-      "title": "Lenny Pearce",
-      "date": "2025-10-21",
-      "time": "5:00 PM",
-      "location": "The Ritz Ybor",
-      "category": "music",
-      "description": "Tue • Oct 21 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/lenny-pearce-tampa-tickets-10-21-2025/event/158543074/"
-    },
-    {
-      "id": 45,
-      "title": "Fleshwater",
-      "date": "2025-10-21",
-      "time": "6:00 PM",
-      "location": "The Orpheum - Tampa",
-      "category": "music",
-      "description": "Tue • Oct 21 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/fleshwater-tampa-tickets-10-21-2025/event/158440616/"
-    },
-    {
-      "id": 46,
-      "title": "Mexican Slum Rats",
-      "date": "2025-10-21",
-      "time": "7:00 PM",
-      "location": "Bayboro Brewing Co.",
-      "category": "music",
-      "description": "Tue • Oct 21 • St Petersburg, FL, USA",
-      "url": "https://www.stubhub.com/mexican-slum-rats-st-petersburg-tickets-10-21-2025/event/158901824/"
-    },
-    {
-      "id": 47,
-      "title": "A Flock of Seagulls",
-      "date": "2025-10-23",
-      "time": "7:00 PM",
-      "location": "Ferg's Sports Bar & Grill",
-      "category": "music",
-      "description": "Thu • Oct 23 • Saint Petersburg, FL, USA",
-      "url": "https://www.stubhub.com/a-flock-of-seagulls-saint-petersburg-tickets-10-23-2025/event/159182851/"
-    },
-    {
-      "id": 48,
-      "title": "Thrice",
-      "date": "2025-10-24",
-      "time": "6:30 PM",
-      "location": "Jannus Live",
-      "category": "music",
-      "description": "Fri • Oct 24 • Saint Petersburg, FL, USA",
-      "url": "https://www.stubhub.com/thrice-saint-petersburg-tickets-10-24-2025/event/158617090/"
-    },
-    {
-      "id": 53,
+      "id": 36,
       "title": "2hollis",
       "date": "2025-10-19",
       "time": "8:00 PM",
@@ -631,7 +541,77 @@
       "url": "https://www.stubhub.com/2hollis-saint-petersburg-tickets-10-19-2025/event/157983801/"
     },
     {
-      "id": 60,
+      "id": 37,
+      "title": "NGHTMRE",
+      "date": "2025-10-04",
+      "time": "10:00 PM",
+      "location": "The Ritz Ybor",
+      "category": "music",
+      "description": "Sat • Oct 04 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/nghtmre-tampa-tickets-10-4-2025/event/159110049/"
+    },
+    {
+      "id": 38,
+      "title": "Lil Tecca",
+      "date": "2025-10-07",
+      "time": "8:00 PM",
+      "location": "Jannus Live",
+      "category": "music",
+      "description": "Tue • Oct 07 • Saint Petersburg, FL, USA",
+      "url": "https://www.stubhub.com/lil-tecca-saint-petersburg-tickets-10-7-2025/event/158987852/"
+    },
+    {
+      "id": 39,
+      "title": "Kublai Khan TX",
+      "date": "2025-10-08",
+      "time": "7:00 PM",
+      "location": "Jannus Live",
+      "category": "music",
+      "description": "Wed • Oct 08 • Saint Petersburg, FL, USA",
+      "url": "https://www.stubhub.com/kublai-khan-saint-petersburg-tickets-10-8-2025/event/158019171/"
+    },
+    {
+      "id": 40,
+      "title": "Red Rocks Worship: The King is Coming Tour Pt. 2 - Tampa, FL",
+      "date": "2025-10-08",
+      "time": "7:00 PM",
+      "location": "South Bay Church",
+      "category": "music",
+      "description": "Wed • Oct 08 • Riverview, FL, USA",
+      "url": "https://www.stubhub.com/red-rocks-worship-riverview-tickets-10-8-2025/event/158960638/"
+    },
+    {
+      "id": 49,
+      "title": "Matisyahu",
+      "date": "2025-10-26",
+      "time": "8:00 PM",
+      "location": "Jannus Live",
+      "category": "music",
+      "description": "Sun • Oct 26 • Saint Petersburg, FL, USA",
+      "url": "https://www.stubhub.com/matisyahu-saint-petersburg-tickets-10-26-2025/event/159134518/"
+    },
+    {
+      "id": 50,
+      "title": "Fear Factory",
+      "date": "2025-10-27",
+      "time": "7:00 PM",
+      "location": "Jannus Live",
+      "category": "music",
+      "description": "Mon • Oct 27 • Saint Petersburg, FL, USA",
+      "url": "https://www.stubhub.com/fear-factory-saint-petersburg-tickets-10-27-2025/event/158863965/"
+    },
+    {
+      "id": 51,
+      "title": "Reneé Rapp",
+      "date": "2025-10-27",
+      "time": "8:00 PM",
+      "location": "Yuengling Center",
+      "category": "music",
+      "description": "Mon • Oct 27 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/renee-rapp-tampa-tickets-10-27-2025/event/158605052/"
+    },
+    {
+      "id": 52,
       "title": "Elevation Worship and Pastor Steven Furtick",
       "date": "2025-10-28",
       "time": "7:00 PM",
@@ -641,17 +621,127 @@
       "url": "https://www.stubhub.com/elevation-worship-tampa-tickets-10-28-2025/event/158058131/"
     },
     {
-      "id": 62,
-      "title": "Josiah Queen",
-      "date": "2025-11-01",
+      "id": 53,
+      "title": "Lamp",
+      "date": "2025-10-28",
+      "time": "8:00 PM",
+      "location": "Jannus Live",
+      "category": "music",
+      "description": "Tue • Oct 28 • Saint Petersburg, FL, USA",
+      "url": "https://www.stubhub.com/lamp-saint-petersburg-tickets-10-28-2025/event/159015141/"
+    },
+    {
+      "id": 54,
+      "title": "Bktherula",
+      "date": "2025-10-29",
+      "time": "8:00 PM",
+      "location": "Jannus Live",
+      "category": "music",
+      "description": "Wed • Oct 29 • Saint Petersburg, FL, USA",
+      "url": "https://www.stubhub.com/bktherula-saint-petersburg-tickets-10-29-2025/event/159206026/"
+    },
+    {
+      "id": 55,
+      "title": "Brian Culbertson",
+      "date": "2025-10-30",
+      "time": "8:00 PM",
+      "location": "Ruth Eckerd Hall",
+      "category": "music",
+      "description": "Thu • Oct 30 • Clearwater, FL, USA",
+      "url": "https://www.stubhub.com/brian-culbertson-clearwater-tickets-10-30-2025/event/158236100/"
+    },
+    {
+      "id": 56,
+      "title": "Haunted Fest St. Pete with Disclosure and REZZ - 2 Day Pass (October 31 - November 1, 2025)",
+      "date": "2025-10-31",
+      "time": "",
+      "location": "St. Pete Pier",
+      "category": "music",
+      "description": "Fri - Sat • Oct 31 • St Petersburg, FL, USA",
+      "url": "https://www.stubhub.com/haunted-fest-st-petersburg-tickets-10-31-2025/event/159172122/"
+    },
+    {
+      "id": 58,
+      "title": "Jack's Mannequin",
+      "date": "2025-10-31",
       "time": "7:00 PM",
+      "location": "Jannus Live",
+      "category": "music",
+      "description": "Fri • Oct 31 • Saint Petersburg, FL, USA",
+      "url": "https://www.stubhub.com/jacks-mannequin-saint-petersburg-tickets-10-31-2025/event/157094937/"
+    },
+    {
+      "id": 59,
+      "title": "Peter Frampton",
+      "date": "2025-10-31",
+      "time": "8:00 PM",
+      "location": "Ruth Eckerd Hall",
+      "category": "music",
+      "description": "Fri • Oct 31 • Clearwater, FL, USA",
+      "url": "https://www.stubhub.com/peter-frampton-clearwater-tickets-10-31-2025/event/158939244/"
+    },
+    {
+      "id": 60,
+      "title": "Kodak Black",
+      "date": "2025-10-31",
+      "time": "8:00 PM",
       "location": "Yuengling Center",
       "category": "music",
-      "description": "Sat • Nov 01 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/josiah-queen-tampa-tickets-11-1-2025/event/158978825/"
+      "description": "Fri • Oct 31 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/kodak-black-tampa-tickets-10-31-2025/event/159437708/"
+    },
+    {
+      "id": 61,
+      "title": "The Mars Volta",
+      "date": "2025-11-01",
+      "time": "7:00 PM",
+      "location": "Jannus Live",
+      "category": "music",
+      "description": "Sat • Nov 01 • Saint Petersburg, FL, USA",
+      "url": "https://www.stubhub.com/mars-volta-saint-petersburg-tickets-11-1-2025/event/157940535/"
     },
     {
       "id": 63,
+      "title": "Lainey Wilson",
+      "date": "2025-11-07",
+      "time": "7:00 PM",
+      "location": "Benchmark International Arena (Formerly Amalie Arena)",
+      "category": "music",
+      "description": "Fri • Nov 07 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/lainey-wilson-tampa-tickets-11-7-2025/event/157155486/"
+    },
+    {
+      "id": 64,
+      "title": "America",
+      "date": "2025-11-15",
+      "time": "7:00 PM",
+      "location": "Ruth Eckerd Hall",
+      "category": "music",
+      "description": "Sat • Nov 15 • Clearwater, FL, USA",
+      "url": "https://www.stubhub.com/america-clearwater-tickets-11-15-2025/event/158023721/"
+    },
+    {
+      "id": 65,
+      "title": "Kaytranada",
+      "date": "2025-11-15",
+      "time": "7:00 PM",
+      "location": "Benchmark International Arena (Formerly Amalie Arena)",
+      "category": "music",
+      "description": "Sat • Nov 15 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/kaytranada-tampa-tickets-11-15-2025/event/158959546/"
+    },
+    {
+      "id": 66,
+      "title": "Ali Siddiq",
+      "date": "2025-11-15",
+      "time": "8:00 PM",
+      "location": "Carol Morsani Hall at David A. Straz, Jr. Center for the Performing Arts",
+      "category": "music",
+      "description": "Sat • Nov 15 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/ali-siddiq-tampa-tickets-11-15-2025/event/158445718/"
+    },
+    {
+      "id": 67,
       "title": "St. Pete Country Fest with Treaty Oak Revival, Parker McCollum, The Red Clay Strays and many more - 3 Day Pass (November 21-23, 2025)",
       "date": "2025-11-21",
       "time": "",
@@ -661,7 +751,27 @@
       "url": "https://www.stubhub.com/st-pete-country-fest-st-petersburg-tickets-11-21-2025/event/157805602/"
     },
     {
-      "id": 64,
+      "id": 68,
+      "title": "Lindsey Stirling",
+      "date": "2025-11-25",
+      "time": "8:00 PM",
+      "location": "Ruth Eckerd Hall",
+      "category": "music",
+      "description": "Tue • Nov 25 • Clearwater, FL, USA",
+      "url": "https://www.stubhub.com/lindsey-stirling-clearwater-tickets-11-25-2025/event/159190508/"
+    },
+    {
+      "id": 69,
+      "title": "Christian Nodal",
+      "date": "2025-11-29",
+      "time": "8:00 PM",
+      "location": "Benchmark International Arena (Formerly Amalie Arena)",
+      "category": "music",
+      "description": "Sat • Nov 29 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/christian-nodal-tampa-tickets-11-29-2025/event/158300145/"
+    },
+    {
+      "id": 70,
       "title": "Playboi Carti",
       "date": "2025-11-30",
       "time": "7:00 PM",
@@ -671,85 +781,25 @@
       "url": "https://www.stubhub.com/playboi-carti-tampa-tickets-11-30-2025/event/159242200/"
     },
     {
-      "id": 65,
-      "title": "Stevie Nicks",
-      "date": "2025-12-07",
-      "time": "7:00 PM",
-      "location": "Benchmark International Arena (Formerly Amalie Arena)",
-      "category": "music",
-      "description": "Sun • Dec 07 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/stevie-nicks-tampa-tickets-12-7-2025/event/157960551/"
-    },
-    {
-      "id": 66,
-      "title": "We Belong Here Tampa Bay with ODESZA, Elderbrook and many more - Sunday Pass Only",
-      "date": "2025-12-14",
-      "time": "1:00 PM",
-      "location": "St. Pete Pier",
-      "category": "music",
-      "description": "Sun • Dec 14 • St Petersburg, FL, USA",
-      "url": "https://www.stubhub.com/we-belong-here-st-petersburg-tickets-12-14-2025/event/159332654/"
-    },
-    {
-      "id": 67,
-      "title": "Machine Gun Kelly",
-      "date": "2025-12-19",
-      "time": "8:00 PM",
-      "location": "Benchmark International Arena (Formerly Amalie Arena)",
-      "category": "music",
-      "description": "Fri • Dec 19 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/machine-gun-kelly-tampa-tickets-12-19-2025/event/159433419/"
-    },
-    {
-      "id": 68,
-      "title": "Jon Pardi",
-      "date": "2025-12-19",
-      "time": "8:00 PM",
-      "location": "Event Center at Seminole Hard Rock Tampa - Complex",
-      "category": "music",
-      "description": "Fri • Dec 19 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/jon-pardi-tampa-tickets-12-19-2025/event/159360247/"
-    },
-    {
-      "id": 69,
-      "title": "Morrissey",
-      "date": "2026-01-20",
-      "time": "8:00 PM",
-      "location": "The Mahaffey Theater at Duke Energy Center for the Arts",
-      "category": "music",
-      "description": "Tue • Jan 20 • Saint Petersburg, FL, USA",
-      "url": "https://www.stubhub.com/morrissey-saint-petersburg-tickets-1-20-2026/event/157169332/"
-    },
-    {
-      "id": 70,
-      "title": "Sabaton",
-      "date": "2026-02-10",
-      "time": "7:00 PM",
-      "location": "Yuengling Center",
-      "category": "music",
-      "description": "Tue • Feb 10 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/sabaton-tampa-tickets-2-10-2026/event/159405036/"
-    },
-    {
       "id": 71,
-      "title": "Rascal Flatts",
-      "date": "2026-02-13",
-      "time": "7:00 PM",
+      "title": "Brandy & Monica: The Boy Is Mine Tour",
+      "date": "2025-12-12",
+      "time": "8:00 PM",
       "location": "Benchmark International Arena (Formerly Amalie Arena)",
       "category": "music",
-      "description": "Fri • Feb 13 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/rascal-flatts-tampa-tickets-2-13-2026/event/159155827/"
+      "description": "Fri • Dec 12 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/brandy-monica-tampa-tickets-12-12-2025/event/158977494/"
     },
     {
       "id": 72,
-      "title": "Ed Sheeran",
-      "date": "2026-11-07",
-      "time": "5:30 PM",
-      "location": "Raymond James Stadium",
+      "title": "Trans-Siberian Orchestra",
+      "date": "2025-12-14",
+      "time": "3:00 PM",
+      "location": "Benchmark International Arena (Formerly Amalie Arena)",
       "category": "music",
-      "description": "Sat • Nov 07 • Tampa, FL, USA",
-      "url": "https://www.stubhub.com/ed-sheeran-tampa-tickets-11-7-2026/event/159435010/"
+      "description": "Sun • Dec 14 • Tampa, FL, USA",
+      "url": "https://www.stubhub.com/trans-siberian-orchestra-tampa-tickets-12-14-2025/event/159278390/"
     }
   ],
-  "lastUpdated": "2025-09-28T06:18:53.956Z"
+  "lastUpdated": "2025-09-28T06:27:08.358Z"
 }

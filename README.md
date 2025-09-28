@@ -40,7 +40,7 @@ A beautiful, modern calendar website that automatically discovers and displays l
 - **Language**: TypeScript for type safety
 - **Styling**: CSS-in-JS with modern dark theme
 - **Deployment**: GitHub Pages with static export
-- **Event Sources**: Posh.vip API + StubHub marketplace integration
+- **Event Sources**: Posh.vip marketplace, StubHub headless scrape, Dice & Shotgun via Firecrawl + LLM
 - **Enhanced Discovery**: Firecrawl + OpenRouter AI (optional)
 - **Automation**: GitHub Actions for CI/CD
 - **Data Storage**: Static JSON files updated via workflows

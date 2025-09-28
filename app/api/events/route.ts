@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { Firecrawl } from '@mendable/firecrawl-js';
 import { chromium } from 'playwright';
+import { Firecrawl } from '@mendable/firecrawl-js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -60,103 +60,9 @@ export async function GET() {
     }
 
     // Always include marketplace events
-    const [poshEvents, stubhubEvents, llmEvents] = await Promise.all([
-      fetchPoshEvents(),
-      fetchStubhubEvents(),
-      fetchFirecrawlEvents()
-    ]);
-
-    // Optionally include Firecrawl + LLM extracted events if credentials exist
-    const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY || process.env.FIRECRAWL_KEY || process.env.FIRECRAWL_TOKEN;
-    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_KEY;
-
-    let llmEvents: CalendarEvent[] = [];
-    if (FIRECRAWL_API_KEY && OPENROUTER_API_KEY) {
-      try {
-        const firecrawl = new Firecrawl({ apiKey: FIRECRAWL_API_KEY });
-        const sources = [
-          'https://shotgun.live/en/cities/tampa',
-          'https://dice.fm/browse/Tampa:27.947974:-82.457098'
-        ];
-
-        const results = await Promise.all(
-          sources.map((url) =>
-            firecrawl.scrape(url, {
-              formats: ['markdown', 'links'],
-              onlyMainContent: false,
-              waitFor: 1500,
-              timeout: 30000,
-              maxAge: 0
-            } as any).then((doc: any) => ({ url, markdown: doc?.markdown || '', links: doc?.links || [] }))
-          )
-        );
-
-        const combinedMarkdown = results
-          .map(r => `# SOURCE: ${r.url}\n\n${r.markdown}`)
-          .join('\n\n---\n\n');
-
-        const combinedLinks = results.flatMap(r => (Array.isArray(r.links) ? r.links : []));
-        const linksJson = JSON.stringify(combinedLinks).slice(0, 15000);
-        const markdown: string = combinedMarkdown;
-
-        if (markdown) {
-          const system = `You are an expert event parser. Extract a clean JSON array of events from the given markdown about Tampa events.
-Rules:
-- Output ONLY valid JSON, no prose.
-- Each event must include: id (string), title (string), description (string, can be short), category (string), location (string), startDate (YYYY-MM-DD), startTime (string, e.g. 7:30 PM), url (string). URL is REQUIRED. If multiple candidate links exist, choose the event detail or ticket link.
-- If only a date-time string is present, split into startDate and startTime.
-- If month/day names are present without year, assume the next occurrence from today.
-- For multi-day events, use the first date as startDate and startTime as the first start time you can find.
-- Infer category from context (music, arts, business, technology, sports, networking, nightlife, festival, concert, theater, comedy, family) if possible.
-- Location can be a venue or city; prefer venue if available.`;
-
-          const user = `Markdown to parse (multi-source):\n\n${markdown.slice(0, 12000)}\n\nLINKS (JSON array of discovered links for reference):\n${linksJson}`;
-
-          const completionRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-              'Content-Type': 'application/json',
-              'HTTP-Referer': 'https://calendar-app.local',
-              'X-Title': 'Calendar-App Event Extractor'
-            },
-            body: JSON.stringify({
-              model: 'x-ai/grok-4-fast:free',
-              temperature: 0,
-              max_tokens: 2000,
-              messages: [
-                { role: 'system', content: system },
-                { role: 'user', content: user }
-              ]
-            })
-          });
-
-          if (completionRes.ok) {
-            const completionJson = await completionRes.json();
-            const content: string = completionJson?.choices?.[0]?.message?.content || '[]';
-            let extracted: ExtractedEvent[] = [];
-            try {
-              extracted = JSON.parse(content);
-              if (!Array.isArray(extracted)) extracted = [];
-            } catch {
-              extracted = [];
-            }
-            llmEvents = extracted.map((e, idx) => ({
-              id: idx + 1,
-              title: e.title || 'Untitled Event',
-              date: (e.startDate || '').slice(0, 10),
-              time: e.startTime || '',
-              location: e.location || 'Tampa, FL',
-              category: normalizeCategory(e.category),
-              description: e.description || '',
-              url: sanitizeUrl(e.url)
-            })).filter(ev => ev.date);
-          }
-        }
-      } catch {
-        // Ignore LLM pipeline errors and proceed with Posh events only
-      }
-    }
+    const poshEvents = await fetchPoshEvents();
+    const stubhubEvents = await fetchStubhubEvents();
+    const llmEvents = await fetchFirecrawlEvents();
 
     // Merge and dedupe events
     const merged = dedupeEvents([...poshEvents, ...stubhubEvents, ...llmEvents]);
@@ -324,6 +230,120 @@ async function fetchStubhubEvents(): Promise<CalendarEvent[]> {
     return [];
   } finally {
     await browser.close().catch(() => {});
+  }
+}
+
+async function fetchFirecrawlEvents(): Promise<CalendarEvent[]> {
+  const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY || process.env.FIRECRAWL_KEY || process.env.FIRECRAWL_TOKEN;
+  const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_KEY;
+  if (!FIRECRAWL_API_KEY || !OPENROUTER_API_KEY) {
+    return [];
+  }
+
+  try {
+    const firecrawl = new Firecrawl({ apiKey: FIRECRAWL_API_KEY });
+    const sources = [
+      'https://shotgun.live/en/cities/tampa',
+      'https://dice.fm/browse/Tampa:27.947974:-82.457098'
+    ];
+
+    const results = await Promise.all(
+      sources.map(async (url) => {
+        try {
+          const doc = await firecrawl.scrape(url, {
+            formats: ['markdown', 'links'],
+            onlyMainContent: false,
+            waitFor: 1500,
+            timeout: 30000,
+            maxAge: 0
+          } as any);
+          return { url, markdown: doc?.markdown || '', links: Array.isArray(doc?.links) ? doc.links : [] };
+        } catch (err) {
+          console.warn(`Firecrawl scrape failed for ${url}:`, (err as Error)?.message || err);
+          return { url, markdown: '', links: [] as any[] };
+        }
+      })
+    );
+
+    const combinedMarkdown = results
+      .map((r) => (r.markdown ? `# SOURCE: ${r.url}\n\n${r.markdown}` : ''))
+      .filter(Boolean)
+      .join('\n\n---\n\n');
+
+    if (!combinedMarkdown) return [];
+
+    const combinedLinks = results.flatMap((r) => r.links);
+    const linksJson = JSON.stringify(combinedLinks).slice(0, 15000);
+
+    const system = `You are an expert event parser. Extract a clean JSON array of events from the given markdown about Tampa events.
+Rules:
+- Output ONLY valid JSON, no prose.
+- Each event must include: id (string), title (string), description (string, can be short), category (string), location (string), startDate (YYYY-MM-DD), startTime (string, e.g. 7:30 PM), url (string). URL is REQUIRED. If multiple candidate links exist, choose the event detail or ticket link.
+- If only a date-time string is present, split into startDate and startTime.
+- If month/day names are present without year, assume the next occurrence from today.
+- For multi-day events, use the first date as startDate and startTime as the first start time you can find.
+- Infer category from context (music, arts, business, technology, sports, networking, nightlife, festival, concert, theater, comedy, family) if possible.
+- Location can be a venue or city; prefer venue if available.`;
+
+    const user = `Markdown to parse (multi-source):\n\n${combinedMarkdown.slice(0, 12000)}\n\nLINKS (JSON array of discovered links for reference):\n${linksJson}`;
+
+    const completionRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://calendar-app.local',
+        'X-Title': 'Calendar-App Event Extractor'
+      },
+      body: JSON.stringify({
+        model: 'x-ai/grok-4-fast:free',
+        temperature: 0,
+        max_tokens: 2000,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user }
+        ]
+      })
+    });
+
+    if (!completionRes.ok) {
+      console.warn('OpenRouter completion failed with status', completionRes.status);
+      return [];
+    }
+
+    let content = '[]';
+    try {
+      const completionJson = await completionRes.json();
+      content = completionJson?.choices?.[0]?.message?.content || '[]';
+    } catch (err) {
+      console.warn('Failed to parse OpenRouter response JSON', (err as Error)?.message || err);
+      return [];
+    }
+
+    let extracted: ExtractedEvent[] = [];
+    try {
+      const parsed = JSON.parse(content);
+      extracted = Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      console.warn('LLM output was not valid JSON', (err as Error)?.message || err);
+      return [];
+    }
+
+    return extracted
+      .map((event, idx) => ({
+        id: idx + 1,
+        title: event.title || 'Untitled Event',
+        date: (event.startDate || '').slice(0, 10),
+        time: event.startTime || '',
+        location: event.location || 'Tampa, FL',
+        category: normalizeCategory(event.category),
+        description: event.description || '',
+        url: sanitizeUrl(event.url)
+      }))
+      .filter((ev) => ev.date);
+  } catch (err) {
+    console.warn('Firecrawl pipeline failed:', (err as Error)?.message || err);
+    return [];
   }
 }
 
