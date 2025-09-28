@@ -31,8 +31,11 @@ export default function Page() {
         setLoading(true);
         setError(null);
         
+        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+        const staticPath = `${basePath}/data/events.json`;
+
         // Try to fetch from the static JSON file first (for GitHub Pages)
-        let res = await fetch('/data/events.json', { cache: 'no-store' });
+        let res = await fetch(staticPath, { cache: 'no-store' });
         
         // Fallback to API route (for local development)
         if (!res.ok) {

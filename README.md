@@ -57,7 +57,7 @@ npm run dev
 
 ### GitHub Pages Deployment
 
-This project is configured for automatic deployment to GitHub Pages with event fetching every 6 hours.
+This project is configured for automatic deployment to GitHub Pages with event fetching and deployment every 6 hours.
 
 #### Setup Instructions:
 
@@ -71,13 +71,14 @@ This project is configured for automatic deployment to GitHub Pages with event f
    - Add the following secrets for enhanced event discovery:
      - `FIRECRAWL_API_KEY`: Your Firecrawl API key for web scraping
      - `OPENROUTER_API_KEY`: Your OpenRouter API key for AI event extraction
-4. **Push to main branch** - deployment will happen automatically!
+4. **Push to main branch** or wait for the schedule - the unified workflow handles both fetching and deployment!
 
-#### Automated Workflows:
+#### Automated Workflow:
 
-- **Event Fetching**: Runs every 6 hours to update `data/events.json`
-- **Deployment**: Triggers on every push to main branch
-- **Manual Trigger**: Both workflows can be triggered manually from Actions tab
+- **Trigger Frequency**: Every 6 hours (via cron) + manual/`main` push
+- **Event Fetching**: Updates `data/events.json` and `public/data/events.json`
+- **Static Build**: Runs `npm run build` with Next.js static export
+- **Deployment**: Publishes the `out/` directory to GitHub Pages
 
 #### Live Demo:
 Once deployed, your calendar will be available at: `https://yourusername.github.io/event-cal-ai/`

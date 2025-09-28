@@ -101,6 +101,12 @@ async function main() {
   await fs.mkdir(outDir, { recursive: true });
   await fs.writeFile(outFile, JSON.stringify(payload, null, 2), 'utf8');
   console.log(`Wrote ${outFile}`);
+
+  const publicDir = path.join(process.cwd(), 'public', 'data');
+  const publicFile = path.join(publicDir, 'events.json');
+  await fs.mkdir(publicDir, { recursive: true });
+  await fs.writeFile(publicFile, JSON.stringify(payload, null, 2), 'utf8');
+  console.log(`Wrote ${publicFile}`);
 }
 
 await main();
