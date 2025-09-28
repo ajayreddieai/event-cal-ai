@@ -1,5 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { chromium } from 'playwright';
+import { Firecrawl } from '@mendable/firecrawl-js';
 
 async function safeFetchJson(url, options = {}) {
   try {
@@ -28,6 +30,15 @@ function sanitizeUrl(url) {
   } catch {
     return undefined;
   }
+}
+
+function normalizeCategory(cat) {
+  const c = (cat || '').toLowerCase();
+  const known = ['business','technology','arts','music','sports','networking','nightlife','festival','concert','theater','comedy','family'];
+  for (const k of known) {
+    if (c.includes(k)) return k;
+  }
+  return 'music';
 }
 
 async function fetchPoshEvents() {
@@ -196,78 +207,191 @@ function toStubhubEvent(raw, idx) {
 }
 
 async function fetchStubhubEvents() {
-  const baseUrl = 'https://www.stubhub.com/concert-tickets/category/1';
-  const params = new URLSearchParams({
-    method: 'getExploreEvents',
-    lat: 'MjcuOTUxNjg5Ng==',
-    lon: 'LTgyLjQ1ODc1MjY5OTk5OTk5',
-    tlcId: '3'
+  const browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15'
   });
+  const page = await context.newPage();
 
-  const sessionCookie = 'wsso-session=eyJ1bCI6bnVsbCwidXBsIjp7ImN0IjoiVVMiLCJuIjoiVGFtcGEiLCJsdCI6MjcuOTUxNjg5NiwibGciOi04Mi40NTg3NTI2OTk5OTk5OSwic3JjIjoiVVNFUl9TRUxFQ1RJT04ifSwiZCI6bnVsbCwicnYiOnsiYyI6W10sImUiOltdLCJsIjpbXSwicnRjX3UiOm51bGwsInJ0Y19ldCI6IjIwMjUtMDktMjhUMDM6MTU6MTguNzkyMzc2WiJ9LCJmYyI6eyJjIjpbXX0sInAiOltdLCJpZCI6bnVsbH0=; wsso=eyJ1bCI6bnVsbCwidXBsIjp7Im4iOiJOZXcgWW9yayIsInMiOmZhbHNlLCJsZyI6LTc0LjAwNiwibHQiOjQwLjcxMywiY3QiOiJVUyIsInNyYyI6IlVTRVJfU0VMRUNUSU9OIiwiZHQiOiIwMDAxLTAxLTAxVDAwOjAwOjAwKzAwOjAwIn0sImQiOnsidHlw…HjpkBAAA; auths=0; ulv-ed-event=eyIxNTkxMDkzNzIiOlsxNzU5MDI5NDE5MjI4XX0=; forterToken=af0744c30c6f4bf0ba16661127323c3f_1759029419416_271_UAS9_24ck; lastRskxRun=1759029419708; rskxRunCookie=0; rCookie=iza24s4nvegdof6x60myemg34p6t8; aws-waf-token=fa23dfc5-0828-4efa-81fd-5b59b0a24fec:EwoAmZUkhpZqAAAA:yZ4ShlfktsOskwnAoZDe5ZBMyW1n9DVZI73N9iOl4xUv2dP0HgNJIzK9KIhfP3qXz3GtfOQxiPMCXWkd/AvAk+ioxpzPqRl5DOrvqOKD5N2TKK8gVruCd4g4NFyT6EXWyAzVSEReW410Cm+D9dvTLaWtCcTgyA0tpJohOO6XLubLKyD5gXqTpxU1QQ95YNIFlFRoVmL7TtCJX+0QXA==';
+  try {
+    await page.goto('https://www.stubhub.com/concert-tickets/category/1', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(2000);
 
-  const headers = {
-    Accept: 'application/json, text/plain, */*',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Cache-Control': 'no-cache',
-    Pragma: 'no-cache',
-    'Sec-Fetch-Dest': 'empty',
-    'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Site': 'same-origin',
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
-    Referer: 'https://www.stubhub.com/concert-tickets/category/1',
-    Origin: 'https://www.stubhub.com',
-    'X-Requested-With': 'XMLHttpRequest'
-  };
+    const cookies = await context.cookies();
+    const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
+    const headers = {
+      Accept: 'application/json, text/plain, */*',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+      'Sec-Fetch-Dest': 'empty',
+      'Sec-Fetch-Mode': 'cors',
+      'Sec-Fetch-Site': 'same-origin',
+      'User-Agent': await page.evaluate(() => navigator.userAgent),
+      Referer: 'https://www.stubhub.com/concert-tickets/category/1',
+      Origin: 'https://www.stubhub.com',
+      'X-Requested-With': 'XMLHttpRequest',
+      Cookie: cookieHeader
+    };
 
-  if (sessionCookie) {
-    headers.Cookie = sessionCookie;
+    const collected = [];
+    const maxPages = 6;
+    for (let pageIndex = 1; pageIndex <= maxPages; pageIndex += 1) {
+      const params = new URLSearchParams({
+        method: 'getExploreEvents',
+        lat: 'MjcuOTUxNjg5Ng==',
+        lon: 'LTgyLjQ1ODc1MjY5OTk5OTk5',
+        page: String(pageIndex),
+        tlcId: '3'
+      });
+      const url = `https://www.stubhub.com/concert-tickets/category/1?${params.toString()}`;
+
+      const result = await context.request.get(url, { headers });
+      if (!result.ok()) {
+        console.warn('StubHub browser request failed with status', result.status());
+        break;
+      }
+
+      let json;
+      try {
+        json = await result.json();
+      } catch {
+        console.warn('StubHub browser request returned non-JSON payload');
+        break;
+      }
+
+      const events = Array.isArray(json?.events) ? json.events : [];
+      collected.push(...events);
+
+      const remaining = Number(json?.remaining ?? 0);
+      if (!Number.isFinite(remaining) || remaining <= 0) {
+        break;
+      }
+    }
+
+    return collected
+      .map((ev, idx) => toStubhubEvent(ev, idx))
+      .filter(Boolean);
+  } catch (err) {
+    console.warn('StubHub browser workflow failed:', err?.message || err);
+    return [];
+  } finally {
+    await browser.close();
+  }
+}
+
+async function fetchFirecrawlEvents() {
+  const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY || process.env.FIRECRAWL_KEY || process.env.FIRECRAWL_TOKEN;
+  const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_KEY;
+  if (!FIRECRAWL_API_KEY || !OPENROUTER_API_KEY) {
+    return [];
   }
 
-  const collected = [];
-  const maxPages = 6;
-  for (let page = 1; page <= maxPages; page += 1) {
-    params.set('page', String(page));
-    const url = `${baseUrl}?${params.toString()}`;
+  try {
+    const firecrawl = new Firecrawl({ apiKey: FIRECRAWL_API_KEY });
+    const sources = [
+      'https://shotgun.live/en/cities/tampa',
+      'https://dice.fm/browse/Tampa:27.947974:-82.457098'
+    ];
 
-    let res;
+    const results = await Promise.all(
+      sources.map(async (url) => {
+        try {
+          const doc = await firecrawl.scrape(url, {
+            formats: ['markdown', 'links'],
+            onlyMainContent: false,
+            waitFor: 1500,
+            timeout: 30000,
+            maxAge: 0
+          });
+          return { url, markdown: doc?.markdown || '', links: Array.isArray(doc?.links) ? doc.links : [] };
+        } catch (err) {
+          console.warn(`Firecrawl scrape failed for ${url}:`, err?.message || err);
+          return { url, markdown: '', links: [] };
+        }
+      })
+    );
+
+    const combinedMarkdown = results
+      .map((r) => (r.markdown ? `# SOURCE: ${r.url}\n\n${r.markdown}` : ''))
+      .filter(Boolean)
+      .join('\n\n---\n\n');
+
+    if (!combinedMarkdown) return [];
+
+    const combinedLinks = results.flatMap((r) => r.links);
+    const linksJson = JSON.stringify(combinedLinks).slice(0, 15000);
+
+    const system = `You are an expert event parser. Extract a clean JSON array of events from the given markdown about Tampa events.
+Rules:
+- Output ONLY valid JSON, no prose.
+- Each event must include: id (string), title (string), description (string, can be short), category (string), location (string), startDate (YYYY-MM-DD), startTime (string, e.g. 7:30 PM), url (string). URL is REQUIRED. If multiple candidate links exist, choose the event detail or ticket link.
+- If only a date-time string is present, split into startDate and startTime.
+- If month/day names are present without year, assume the next occurrence from today.
+- For multi-day events, use the first date as startDate and startTime as the first start time you can find.
+- Infer category from context (music, arts, business, technology, sports, networking, nightlife, festival, concert, theater, comedy, family) if possible.
+- Location can be a venue or city; prefer venue if available.`;
+
+    const user = `Markdown to parse (multi-source):\n\n${combinedMarkdown.slice(0, 12000)}\n\nLINKS (JSON array of discovered links for reference):\n${linksJson}`;
+
+    const completionRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://calendar-app.local',
+        'X-Title': 'Calendar-App Event Extractor'
+      },
+      body: JSON.stringify({
+        model: 'x-ai/grok-4-fast:free',
+        temperature: 0,
+        max_tokens: 2000,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user }
+        ]
+      })
+    });
+
+    if (!completionRes.ok) {
+      console.warn('OpenRouter completion failed with status', completionRes.status);
+      return [];
+    }
+
+    let content = '[]';
     try {
-      res = await fetch(url, { headers, cache: 'no-store' });
-    } catch {
-      console.warn('StubHub request failed at network level');
-      break;
+      const completionJson = await completionRes.json();
+      content = completionJson?.choices?.[0]?.message?.content || '[]';
+    } catch (err) {
+      console.warn('Failed to parse OpenRouter response JSON', err);
+      return [];
     }
 
-    const wafAction = res.headers?.get?.('x-amzn-waf-action');
-    if (!res.ok || res.status === 202 || wafAction === 'challenge') {
-      console.warn(`StubHub blocked request (status=${res.status}, waf=${wafAction || 'none'})`);
-      break;
-    }
-
-    let data = null;
+    let extracted = [];
     try {
-      data = await res.json();
-    } catch {
-      console.warn('StubHub response was not JSON');
-      break;
+      extracted = JSON.parse(content);
+      if (!Array.isArray(extracted)) extracted = [];
+    } catch (err) {
+      console.warn('LLM output was not valid JSON', err);
+      return [];
     }
 
-    const events = Array.isArray(data?.events) ? data.events : [];
-    if (!events.length) {
-      break;
-    }
-
-    collected.push(...events);
-
-    const remaining = Number(data?.remaining ?? 0);
-    if (!Number.isFinite(remaining) || remaining <= 0) {
-      break;
-    }
+    return extracted
+      .map((e, idx) => ({
+        id: idx + 1,
+        title: e.title || 'Untitled Event',
+        date: (e.startDate || '').slice(0, 10),
+        time: e.startTime || '',
+        location: e.location || 'Tampa, FL',
+        category: normalizeCategory(e.category),
+        description: e.description || '',
+        url: sanitizeUrl(e.url)
+      }))
+      .filter((ev) => ev.date);
+  } catch (err) {
+    console.warn('Firecrawl pipeline failed:', err?.message || err);
+    return [];
   }
-
-  return collected
-    .map((ev, idx) => toStubhubEvent(ev, idx))
-    .filter(Boolean);
 }
 
 function dedupeEvents(events) {
@@ -283,12 +407,20 @@ function dedupeEvents(events) {
 }
 
 async function main() {
-  const [posh, stubhub] = await Promise.all([fetchPoshEvents(), fetchStubhubEvents()]);
+  const [posh, stubhub, llmEvents] = await Promise.all([
+    fetchPoshEvents(),
+    fetchStubhubEvents(),
+    fetchFirecrawlEvents()
+  ]);
+
   if (stubhub.length === 0) {
-    console.warn('StubHub events unavailable; repository JSON will contain only Posh data.');
+    console.warn('StubHub events unavailable; repository JSON may be missing StubHub data.');
   }
-  // Future: optionally add Firecrawl + LLM if secrets are provided (skipped here for repo safety)
-  const merged = dedupeEvents([...posh, ...stubhub]);
+  if (llmEvents.length === 0) {
+    console.warn('Dice/Shotgun events unavailable (Firecrawl or OpenRouter missing/failing).');
+  }
+
+  const merged = dedupeEvents([...posh, ...stubhub, ...llmEvents]);
   const payload = { events: merged, lastUpdated: new Date().toISOString() };
 
   const outDir = path.join(process.cwd(), 'data');

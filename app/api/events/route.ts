@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Firecrawl } from '@mendable/firecrawl-js';
+import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -59,9 +60,10 @@ export async function GET() {
     }
 
     // Always include marketplace events
-    const [poshEvents, stubhubEvents] = await Promise.all([
+    const [poshEvents, stubhubEvents, llmEvents] = await Promise.all([
       fetchPoshEvents(),
-      fetchStubhubEvents()
+      fetchStubhubEvents(),
+      fetchFirecrawlEvents()
     ]);
 
     // Optionally include Firecrawl + LLM extracted events if credentials exist
@@ -243,75 +245,86 @@ async function fetchPoshEvents(): Promise<CalendarEvent[]> {
 }
 
 async function fetchStubhubEvents(): Promise<CalendarEvent[]> {
-  const baseUrl = 'https://www.stubhub.com/concert-tickets/category/1';
-  const params = new URLSearchParams({
-    method: 'getExploreEvents',
-    lat: 'MjcuOTUxNjg5Ng==',
-    lon: 'LTgyLjQ1ODc1MjY5OTk5OTk5',
-    tlcId: '3'
+  let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null;
+  try {
+    browser = await chromium.launch({ headless: true });
+  } catch (err) {
+    console.warn('StubHub headless launch failed:', (err as Error)?.message || err);
+    return [];
+  }
+
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+    ignoreHTTPSErrors: true
   });
+  const page = await context.newPage();
 
-  const sessionCookie = 'wsso-session=eyJ1bCI6bnVsbCwidXBsIjp7ImN0IjoiVVMiLCJuIjoiVGFtcGEiLCJsdCI6MjcuOTUxNjg5NiwibGciOi04Mi40NTg3NTI2OTk5OTk5OSwic3JjIjoiVVNFUl9TRUxFQ1RJT04ifSwiZCI6bnVsbCwicnYiOnsiYyI6W10sImUiOltdLCJsIjpbXSwicnRjX3UiOm51bGwsInJ0Y19ldCI6IjIwMjUtMDktMjhUMDM6MTU6MTguNzkyMzc2WiJ9LCJmYyI6eyJjIjpbXX0sInAiOltdLCJpZCI6bnVsbH0=; wsso=eyJ1bCI6bnVsbCwidXBsIjp7Im4iOiJOZX cgWW9yayIsInMiOmZhbHNlLCJsZyI6LTc0LjAwNiwibHQiOjQwLjcxMywiY3QiOiJVUyIsInNyYyI6IlVTRVJfU0VMRUNUSU9OIiwiZHQiOiIwMDAxLTAxLTAxVDAwOjAwOjAwKzAwOjAwIn0sImQiOnsidHlw...HjpkBAAA; auths=0; ulv-ed-event=eyIxNTkxMDkzNzIiOlsxNzU5MDI5NDE5MjI4XX0=; forterToken=af0744c30c6f4bf0ba16661127323c3f_1759029419416_271_UAS9_24ck; lastRskxRun=1759029419708; rskxRunCookie=0; rCookie=iza24s4nvegdof6x60myemg34p6t8; aws-waf-token=fa23dfc5-0828-4efa-81fd-5b59b0a24fec:EwoAmZUkhpZqAAAA:yZ4ShlfktsOskwnAoZDe5ZBMyW1n9DVZI73N9iOl4xUv2dP0HgNJIzK9KIhfP3qXz3GtfOQxiPMCXWkd/AvAk+ioxpzPqRl5DOrvqOKD5N2TKK8gVruCd4g4NFyT6EXWyAzVSEReW410Cm+D9dvTLaWtCcTgyA0tpJohOO6XLubLKyD5gXqTpxU1QQ95YNIFlFRoVmL7TtCJX+0QXA==';
+  try {
+    await page.goto('https://www.stubhub.com/concert-tickets/category/1', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(2000);
 
-  const headers: Record<string, string> = {
-    Accept: 'application/json, text/plain, */*',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Cache-Control': 'no-cache',
-    Pragma: 'no-cache',
-    'Sec-Fetch-Dest': 'empty',
-    'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Site': 'same-origin',
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
-    Referer: 'https://www.stubhub.com/concert-tickets/category/1',
-    Origin: 'https://www.stubhub.com',
-    'X-Requested-With': 'XMLHttpRequest'
-  };
+    const cookies = await context.cookies();
+    const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
+    const userAgent = await page.evaluate(() => navigator.userAgent);
 
-  if (sessionCookie) {
-    headers.Cookie = sessionCookie;
+    const headers: Record<string, string> = {
+      Accept: 'application/json, text/plain, */*',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+      'Sec-Fetch-Dest': 'empty',
+      'Sec-Fetch-Mode': 'cors',
+      'Sec-Fetch-Site': 'same-origin',
+      'User-Agent': userAgent,
+      Referer: 'https://www.stubhub.com/concert-tickets/category/1',
+      Origin: 'https://www.stubhub.com',
+      'X-Requested-With': 'XMLHttpRequest'
+    };
+    if (cookieHeader) {
+      headers.Cookie = cookieHeader;
+    }
+
+    const collected: any[] = [];
+    const maxPages = 6;
+    for (let pageIndex = 1; pageIndex <= maxPages; pageIndex += 1) {
+      const params = new URLSearchParams({
+        method: 'getExploreEvents',
+        lat: 'MjcuOTUxNjg5Ng==',
+        lon: 'LTgyLjQ1ODc1MjY5OTk5OTk5',
+        page: String(pageIndex),
+        tlcId: '3'
+      });
+      const url = `https://www.stubhub.com/concert-tickets/category/1?${params.toString()}`;
+
+      const response = await context.request.get(url, { headers });
+      if (!response.ok()) {
+        console.warn('StubHub headless request failed with status', response.status());
+        break;
+      }
+
+      const payload = await response.json().catch(() => null);
+      const events = Array.isArray(payload?.events) ? payload.events : [];
+      if (events.length === 0) {
+        break;
+      }
+
+      collected.push(...events);
+
+      const remaining = Number(payload?.remaining ?? 0);
+      if (!Number.isFinite(remaining) || remaining <= 0) {
+        break;
+      }
+    }
+
+    return collected
+      .map((ev, idx) => toStubhubCalendarEvent(ev, idx))
+      .filter((ev): ev is CalendarEvent => Boolean(ev));
+  } catch (err) {
+    console.warn('StubHub browser workflow failed:', (err as Error)?.message || err);
+    return [];
+  } finally {
+    await browser.close().catch(() => {});
   }
-
-  const collected: any[] = [];
-  const maxPages = 6;
-  for (let page = 1; page <= maxPages; page += 1) {
-    params.set('page', String(page));
-    const url = `${baseUrl}?${params.toString()}`;
-
-    let res: Response;
-    try {
-      res = await fetch(url, { headers, cache: 'no-store' });
-    } catch {
-      break;
-    }
-
-    const wafAction = res.headers?.get?.('x-amzn-waf-action');
-    if (!res.ok || res.status === 202 || wafAction === 'challenge') {
-      break;
-    }
-
-    let data: any = null;
-    try {
-      data = await res.json();
-    } catch {
-      break;
-    }
-
-    const events = Array.isArray(data?.events) ? data.events : [];
-    if (!events.length) {
-      break;
-    }
-
-    collected.push(...events);
-
-    const remaining = Number(data?.remaining ?? 0);
-    if (!Number.isFinite(remaining) || remaining <= 0) {
-      break;
-    }
-  }
-
-  return collected
-    .map((ev, idx) => toStubhubCalendarEvent(ev, idx))
-    .filter((ev): ev is CalendarEvent => Boolean(ev));
 }
 
 function toStubhubCalendarEvent(raw: any, idx: number): CalendarEvent | null {
