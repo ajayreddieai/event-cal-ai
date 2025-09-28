@@ -30,7 +30,15 @@ export default function Page() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch('/api/events', { cache: 'no-store' });
+        
+        // Try to fetch from the static JSON file first (for GitHub Pages)
+        let res = await fetch('/data/events.json', { cache: 'no-store' });
+        
+        // Fallback to API route (for local development)
+        if (!res.ok) {
+          res = await fetch('/api/events', { cache: 'no-store' });
+        }
+        
         if (!res.ok) throw new Error('Failed to load events');
         const data = await res.json();
         const incoming: Event[] = (data?.events || []).map((e: any) => ({

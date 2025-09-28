@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "export": "next build",
+    "fetch-events": "node scripts/fetch-events.mjs"
   },
   "dependencies": {
     "@mendable/firecrawl-js": "^4.3.5",

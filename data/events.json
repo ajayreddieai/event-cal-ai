@@ -1,0 +1,185 @@
+{
+  "events": [
+    {
+      "id": 1,
+      "title": "USF Parents Weekend Tailgate",
+      "date": "2025-10-03",
+      "time": "4:00 PM",
+      "location": "Raymond James",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/usf-parents-weekend-tailgate"
+    },
+    {
+      "id": 2,
+      "title": "beastboi. @Tk Lounge - Tampa, FL",
+      "date": "2025-09-27",
+      "time": "9:00 PM",
+      "location": "TK LOUNGE",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/beastboi-tk-lounge-tampa-fl"
+    },
+    {
+      "id": 3,
+      "title": "Ivy Saturdays | AYCD TIL 11 PM",
+      "date": "2025-09-27",
+      "time": "9:00 PM",
+      "location": "Ivy Rose",
+      "category": "music",
+      "description": "VIP : (813) 421-4612",
+      "url": "https://posh.vip/e/saturdays-sep27"
+    },
+    {
+      "id": 4,
+      "title": "GrooveMates: Deja Groove",
+      "date": "2025-09-27",
+      "time": "9:00 PM",
+      "location": "Nexus Studios",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/groovemates-deja-groove"
+    },
+    {
+      "id": 5,
+      "title": "The Coffee Fiesta / Session #3 Tampa",
+      "date": "2025-09-28",
+      "time": "11:11 AM",
+      "location": "Sal y Mar Rooftop",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/the-coffee-fiesta-session-3-tampa"
+    },
+    {
+      "id": 6,
+      "title": "POP-UP DAY PARTY",
+      "date": "2025-10-04",
+      "time": "12:00 PM",
+      "location": "DOPEMEN SOCIAL ",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/popup-day-party"
+    },
+    {
+      "id": 7,
+      "title": "Splashdown Sunday: Swim Edition",
+      "date": "2025-09-28",
+      "time": "1:00 PM",
+      "location": "Hotel Alba Pool",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/splashdown-sunday-swim-edition"
+    },
+    {
+      "id": 8,
+      "title": "Safe Haven x Rose Room Salon x The Big Coffee Cup",
+      "date": "2025-09-28",
+      "time": "12:30 PM",
+      "location": "Rose Room Salon",
+      "category": "music",
+      "description": "Safe Haven Sunday Market",
+      "url": "https://posh.vip/e/safe-haven-x-rose-room-salon-x-the-big-coffee-cup"
+    },
+    {
+      "id": 9,
+      "title": "Danza Habibi - Sunset Party",
+      "date": "2025-09-28",
+      "time": "3:00 PM",
+      "location": "Santos Kitchen and Lounge ",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/danza-habibi-sunset-party"
+    },
+    {
+      "id": 10,
+      "title": "7L @TK Lounge - Tampa, FL",
+      "date": "2025-10-04",
+      "time": "9:00 PM",
+      "location": "TK LOUNGE",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/7l-tk-lounge-tampa-fl"
+    },
+    {
+      "id": 11,
+      "title": "PRIVÉ • 360 ROOFTOP SESSION",
+      "date": "2025-10-03",
+      "time": "10:00 PM",
+      "location": "Pier Teaki",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/priv-360-rooftop-session"
+    },
+    {
+      "id": 12,
+      "title": "Her Way Day Party",
+      "date": "2025-09-28",
+      "time": "4:00 PM",
+      "location": "Venue 2106",
+      "category": "music",
+      "description": "Tampa, it’s HER way! 💋✨ Her Way Day Party 9/28, 4-8PM at Venue 2106. DJs, food, hookah & Sunday Funday energy!",
+      "url": "https://posh.vip/e/her-way-day-party"
+    },
+    {
+      "id": 13,
+      "title": "Delta Presents Ty Dolla $ign",
+      "date": "2025-09-28",
+      "time": "10:00 PM",
+      "location": "912 N Franklin St",
+      "category": "music",
+      "description": "Ty Dolla $ign performing live at Delta Downtown",
+      "url": "https://posh.vip/e/delta-presents-ty-dolla-ign"
+    },
+    {
+      "id": 14,
+      "title": "OG Nixin x Benda @TK Lounge - Tampa, FL",
+      "date": "2025-10-11",
+      "time": "9:00 PM",
+      "location": "TK LOUNGE",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/og-nixin-x-benda-tk-lounge-tampa-fl"
+    },
+    {
+      "id": 15,
+      "title": "Major Buc Suite Party Access",
+      "date": "2025-09-28",
+      "time": "10:00 AM",
+      "location": "Tampa Stadium",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/buc-suite-party-access"
+    },
+    {
+      "id": 16,
+      "title": "Soul Brunch @ Bula Kavananda",
+      "date": "2025-10-05",
+      "time": "11:00 AM",
+      "location": "Bula Kavananda Kava Bar & Coffee House",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/soul-brunch-bula-kavananda"
+    },
+    {
+      "id": 17,
+      "title": "USNVRTHEM RELEASE PARTY",
+      "date": "2025-10-18",
+      "time": "6:00 PM",
+      "location": "Dope Men Social",
+      "category": "music",
+      "description": "'For My Dogs' Single Release party and Music Video watch party. Celebrating the release of the latest single 'Body' Yoko and Cris Streetz",
+      "url": "https://posh.vip/e/usnvrthem-release-party"
+    },
+    {
+      "id": 18,
+      "title": "511 FRANKLIN EAGLES VS  BUCS PHILLY TAKEOVER AFTER PARTY",
+      "date": "2025-09-28",
+      "time": "4:00 PM",
+      "location": "511 Franklin",
+      "category": "music",
+      "description": "",
+      "url": "https://posh.vip/e/511-franklin-eagles-v-tampa-after-party-takeover"
+    }
+  ],
+  "lastUpdated": "2025-09-28T00:47:40.003Z"
+}

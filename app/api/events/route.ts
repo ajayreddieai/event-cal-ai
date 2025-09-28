@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Firecrawl } from '@mendable/firecrawl-js';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 type ExtractedEvent = {
   id: string;
@@ -32,6 +34,28 @@ export async function GET() {
   try {
     if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
       return NextResponse.json({ events: cached.events }, { status: 200 });
+    }
+
+    // 1) Prefer reading from repo-stored JSON (fetched via raw GitHub URL or local file in dev)
+    const RAW_URL = process.env.EVENTS_JSON_URL;
+    let repoData: any = null;
+    if (RAW_URL) {
+      const res = await fetch(RAW_URL, { headers: { 'Accept': 'application/json' }, cache: 'no-store' });
+      if (res.ok) {
+        repoData = await res.json().catch(() => null);
+      }
+    } else {
+      try {
+        const filePath = path.join(process.cwd(), 'data', 'events.json');
+        const buf = await fs.readFile(filePath, 'utf8');
+        repoData = JSON.parse(buf);
+      } catch {}
+    }
+
+    if (repoData?.events && Array.isArray(repoData.events)) {
+      const events = repoData.events as CalendarEvent[];
+      cached = { at: Date.now(), events };
+      return NextResponse.json({ events }, { status: 200, headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate=3600' } });
     }
 
     // Always include Posh.vip marketplace events

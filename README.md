@@ -1,6 +1,6 @@
-# Calendar Website (Next.js)
+# Event Calendar AI 📅
 
-A minimal Next.js site that shows a calendar UI with events.
+A beautiful, modern calendar website that automatically discovers and displays local events in Tampa, FL. Built with Next.js and deployed on GitHub Pages with automated event fetching every 6 hours.
 
 ## ✨ Features
 
@@ -36,24 +36,51 @@ A minimal Next.js site that shows a calendar UI with events.
 
 ## 🛠 Tech Stack
 
-- **Framework**: React Native with Expo (SDK 49)
+- **Framework**: Next.js 14 with React 18
 - **Language**: TypeScript for type safety
-- **Navigation**: React Navigation with bottom tabs
-- **Backend**: Firebase Firestore for user data
-- **Authentication**: Firebase Auth with email/password
-- **Location Services**: Expo Location with GPS tracking
-- **Calendar**: Expo Calendar for native integration
-- **Notifications**: Expo Notifications for push alerts
-- **Storage**: AsyncStorage for offline caching
-- **HTTP Client**: Axios for API requests
+- **Styling**: CSS-in-JS with modern dark theme
+- **Deployment**: GitHub Pages with static export
+- **Event Sources**: Posh.vip API integration
+- **Enhanced Discovery**: Firecrawl + OpenRouter AI (optional)
+- **Automation**: GitHub Actions for CI/CD
+- **Data Storage**: Static JSON files updated via workflows
 
-## Run locally
+## 🚀 Quick Start
+
+### Local Development
 
 ```bash
 npm install
 npm run dev
 # open http://localhost:3000
 ```
+
+### GitHub Pages Deployment
+
+This project is configured for automatic deployment to GitHub Pages with event fetching every 6 hours.
+
+#### Setup Instructions:
+
+1. **Fork or clone this repository**
+2. **Enable GitHub Pages**:
+   - Go to your repository Settings
+   - Navigate to Pages section
+   - Set Source to "GitHub Actions"
+3. **Configure GitHub Actions** (optional - for enhanced event data):
+   - Go to Settings > Secrets and variables > Actions
+   - Add the following secrets for enhanced event discovery:
+     - `FIRECRAWL_API_KEY`: Your Firecrawl API key for web scraping
+     - `OPENROUTER_API_KEY`: Your OpenRouter API key for AI event extraction
+4. **Push to main branch** - deployment will happen automatically!
+
+#### Automated Workflows:
+
+- **Event Fetching**: Runs every 6 hours to update `data/events.json`
+- **Deployment**: Triggers on every push to main branch
+- **Manual Trigger**: Both workflows can be triggered manually from Actions tab
+
+#### Live Demo:
+Once deployed, your calendar will be available at: `https://yourusername.github.io/event-cal-ai/`
 
 ## Installation & Setup
 
@@ -144,15 +171,37 @@ The app integrates with multiple event data sources:
 - **Features**: Social integration, event discussions
 - **Integration**: Facebook Graph API
 
-## Project structure
+## 📁 Project Structure
 
 ```
-app/
-  layout.tsx
-  page.tsx        # Calendar UI with sample events
-public/
-  favicon.ico
+event-cal-ai/
+├── .github/
+│   └── workflows/
+│       ├── fetch-events.yml    # Automated event fetching (every 6 hours)
+│       └── deploy.yml          # GitHub Pages deployment
+├── app/
+│   ├── api/
+│   │   └── events/
+│   │       └── route.ts        # API route (for local dev)
+│   ├── layout.tsx              # Root layout
+│   └── page.tsx                # Main calendar UI
+├── data/
+│   └── events.json             # Static event data (auto-updated)
+├── scripts/
+│   └── fetch-events.mjs        # Event fetching script
+├── public/
+│   └── favicon.ico
+├── package.json
+├── next.config.js              # Next.js config for static export
+└── README.md
 ```
+
+### How It Works:
+
+1. **Event Fetching**: GitHub Actions runs `scripts/fetch-events.mjs` every 6 hours
+2. **Data Storage**: Events are saved to `data/events.json` and committed to the repo
+3. **Static Generation**: Next.js builds a static site that reads from the JSON file
+4. **Deployment**: GitHub Pages serves the static files with automatic updates
 
 ## Usage Guide
 
@@ -475,4 +524,27 @@ For support, please contact the development team or create an issue in the repos
 
 ---
 
-**Note**: This is a work in progress. Some features may not be fully implemented yet.
+## 🎉 Ready for Deployment!
+
+Your Event Calendar AI is now fully configured for GitHub Pages deployment:
+
+### ✅ What's Ready:
+- **Static Export Configuration**: Next.js configured for GitHub Pages
+- **Automated Event Fetching**: Runs every 6 hours via GitHub Actions
+- **Deployment Pipeline**: Automatic deployment on push to main branch
+- **Event Data**: Real Tampa events from Posh.vip API
+- **Responsive Design**: Beautiful dark theme calendar interface
+- **Direct Links**: Click events to view details and get tickets
+
+### 🚀 Next Steps:
+1. Push this code to your GitHub repository
+2. Enable GitHub Pages in repository settings
+3. Set source to "GitHub Actions"
+4. Your calendar will be live at `https://yourusername.github.io/event-cal-ai/`
+
+### 🔧 Optional Enhancements:
+- Add `FIRECRAWL_API_KEY` and `OPENROUTER_API_KEY` secrets for enhanced event discovery
+- Customize event sources in `scripts/fetch-events.mjs`
+- Modify styling in `app/page.tsx` to match your preferences
+
+**The calendar is production-ready and will automatically update with fresh events every 6 hours!**
