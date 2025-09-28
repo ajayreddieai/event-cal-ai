@@ -70,27 +70,65 @@ export default function Page() {
         setError(null);
 
         const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+        const apiPath = `${basePath}/api/events`;
         const staticPath = `${basePath}/data/events.json`;
 
-        let response = await fetch(staticPath, { cache: 'no-store' });
-        if (!response.ok) {
-          response = await fetch('/api/events', { cache: 'no-store' });
+        const mergedEvents: Event[] = [];
+
+        const mapPayloadToEvents = (payload: any) => (
+          (payload?.events ?? []).map((event: any, index: number) => ({
+            id: Number(event?.id) || Number(event?.eventId) || index,
+            title: String(event?.title ?? 'Untitled event'),
+            date: String(event?.date ?? ''),
+            time: String(event?.time ?? ''),
+            location: String(event?.location ?? ''),
+            description: String(event?.description ?? ''),
+            url: event?.url ? String(event.url) : undefined,
+          }))
+        );
+
+        const dedupe = (list: Event[]) => {
+          const seen = new Map<string, Event>();
+          for (const item of list) {
+            if (!item.date || !item.title) continue;
+            const key = `${item.title.toLowerCase()}|${item.date}`;
+            if (!seen.has(key)) {
+              seen.set(key, item);
+            }
+          }
+          return Array.from(seen.values());
+        };
+
+        let apiFailed = false;
+        try {
+          const apiResponse = await fetch(apiPath, { cache: 'no-store' });
+          if (apiResponse.ok) {
+            mergedEvents.push(...mapPayloadToEvents(await apiResponse.json()));
+          } else {
+            apiFailed = true;
+          }
+        } catch {
+          apiFailed = true;
         }
 
-        if (!response.ok) {
-          throw new Error('Unable to load events right now.');
+        if (apiFailed) {
+          const staticResponse = await fetch(staticPath, { cache: 'no-store' });
+          if (!staticResponse.ok) {
+            throw new Error('Unable to load events right now.');
+          }
+          mergedEvents.push(...mapPayloadToEvents(await staticResponse.json()));
+        } else {
+          try {
+            const staticResponse = await fetch(staticPath, { cache: 'no-store' });
+            if (staticResponse.ok) {
+              mergedEvents.push(...mapPayloadToEvents(await staticResponse.json()));
+            }
+          } catch {
+            // ignore static errors when API succeeded
+          }
         }
 
-        const payload = await response.json();
-        const incoming: Event[] = (payload?.events ?? []).map((event: any, index: number) => ({
-          id: Number(event?.id) || index,
-          title: String(event?.title ?? 'Untitled event'),
-          date: String(event?.date ?? ''),
-          time: String(event?.time ?? ''),
-          location: String(event?.location ?? ''),
-          description: String(event?.description ?? ''),
-          url: event?.url ? String(event.url) : undefined,
-        }));
+        const incoming = dedupe(mergedEvents);
 
         if (!cancelled) {
           setEvents(incoming);
