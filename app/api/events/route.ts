@@ -58,8 +58,11 @@ export async function GET() {
       return NextResponse.json({ events }, { status: 200, headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate=3600' } });
     }
 
-    // Always include Posh.vip marketplace events
-    const poshEvents = await fetchPoshEvents();
+    // Always include marketplace events
+    const [poshEvents, stubhubEvents] = await Promise.all([
+      fetchPoshEvents(),
+      fetchStubhubEvents()
+    ]);
 
     // Optionally include Firecrawl + LLM extracted events if credentials exist
     const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY || process.env.FIRECRAWL_KEY || process.env.FIRECRAWL_TOKEN;
@@ -154,7 +157,7 @@ Rules:
     }
 
     // Merge and dedupe events
-    const merged = dedupeEvents([...poshEvents, ...llmEvents]);
+    const merged = dedupeEvents([...poshEvents, ...stubhubEvents, ...llmEvents]);
 
     cached = { at: Date.now(), events: merged };
     return NextResponse.json({ events: merged }, { status: 200 });
@@ -237,6 +240,202 @@ async function fetchPoshEvents(): Promise<CalendarEvent[]> {
   }).filter(e => e.date);
 
   return mapped;
+}
+
+async function fetchStubhubEvents(): Promise<CalendarEvent[]> {
+  const baseUrl = 'https://www.stubhub.com/concert-tickets/category/1';
+  const params = new URLSearchParams({
+    method: 'getExploreEvents',
+    lat: 'MjcuOTUxNjg5Ng==',
+    lon: 'LTgyLjQ1ODc1MjY5OTk5OTk5',
+    tlcId: '3'
+  });
+
+  const fallbackCookie = 'wsso-session=eyJ1bCI6bnVsbCwidXBsIjp7ImN0IjoiVVMiLCJuIjoiVGFtcGEiLCJsdCI6MjcuOTUxNjg5NiwibGciOi04Mi40NTg3NTI2OTk5OTk5OSwic3JjIjoiVVNFUl9TRUxFQ1RJT04ifSwiZCI6bnVsbCwicnYiOnsiYyI6W10sImUiOltdLCJsIjpbXSwicnRjX3UiOm51bGwsInJ0Y19ldCI6IjIwMjUtMDktMjhUMDM6MTU6MTguNzkyMzc2WiJ9LCJmYyI6eyJjIjpbXX0sInAiOltdLCJpZCI6bnVsbH0=; wsso=eyJ1bCI6bnVsbCwidXBsIjp7Im4iOiJOZXcgWW9yayIsInMiOmZhbHNlLCJsZyI6LTc0LjAwNiwibHQiOjQwLjcxMywiY3QiOiJVUyIsInNyYyI6IlVTRVJfU0VMRUNUSU9OIiwiZHQiOiIwMDAxLTAxLTAxVDAwOjAwOjAwKzAwOjAwIn0sImQiOnsidHlw...HjpkBAAA; auths=0; ulv-ed-event=eyIxNTkxMDkzNzIiOlsxNzU5MDI5NDE5MjI4XX0=; forterToken=af0744c30c6f4bf0ba16661127323c3f_1759029419416_271_UAS9_24ck; lastRskxRun=1759029419708; rskxRunCookie=0; rCookie=iza24s4nvegdof6x60myemg34p6t8; aws-waf-token=fa23dfc5-0828-4efa-81fd-5b59b0a24fec:EwoAmZUkhpZqAAAA:yZ4ShlfktsOskwnAoZDe5ZBMyW1n9DVZI73N9iOl4xUv2dP0HgNJIzK9KIhfP3qXz3GtfOQxiPMCXWkd/AvAk+ioxpzPqRl5DOrvqOKD5N2TKK8gVruCd4g4NFyT6EXWyAzVSEReW410Cm+D9dvTLaWtCcTgyA0tpJohOO6XLubLKyD5gXqTpxU1QQ95YNIFlFRoVmL7TtCJX+0QXA==';
+  const sessionCookie = (process.env.STUBHUB_COOKIE || process.env.STUBHUB_SESSION || fallbackCookie).trim();
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json, text/plain, */*',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Cache-Control': 'no-cache',
+    Pragma: 'no-cache',
+    'Sec-Fetch-Dest': 'empty',
+    'Sec-Fetch-Mode': 'cors',
+    'Sec-Fetch-Site': 'same-origin',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+    Referer: 'https://www.stubhub.com/concert-tickets/category/1',
+    Origin: 'https://www.stubhub.com',
+    'X-Requested-With': 'XMLHttpRequest'
+  };
+
+  if (sessionCookie) {
+    headers.Cookie = sessionCookie;
+  }
+
+  const collected: any[] = [];
+  const maxPages = 6;
+  for (let page = 1; page <= maxPages; page += 1) {
+    params.set('page', String(page));
+    const url = `${baseUrl}?${params.toString()}`;
+
+    let res: Response;
+    try {
+      res = await fetch(url, { headers, cache: 'no-store' });
+    } catch {
+      break;
+    }
+
+    const wafAction = res.headers?.get?.('x-amzn-waf-action');
+    if (!res.ok || res.status === 202 || wafAction === 'challenge') {
+      break;
+    }
+
+    let data: any = null;
+    try {
+      data = await res.json();
+    } catch {
+      break;
+    }
+
+    const events = Array.isArray(data?.events) ? data.events : [];
+    if (!events.length) {
+      break;
+    }
+
+    collected.push(...events);
+
+    const remaining = Number(data?.remaining ?? 0);
+    if (!Number.isFinite(remaining) || remaining <= 0) {
+      break;
+    }
+  }
+
+  return collected
+    .map((ev, idx) => toStubhubCalendarEvent(ev, idx))
+    .filter((ev): ev is CalendarEvent => Boolean(ev));
+}
+
+function toStubhubCalendarEvent(raw: any, idx: number): CalendarEvent | null {
+  const title = typeof raw?.name === 'string' && raw.name.trim() ? raw.name.trim() : 'Untitled Event';
+  const date = parseStubhubDate(raw);
+  if (!date) return null;
+
+  const time = parseStubhubTime(raw?.formattedTime);
+  const location = formatStubhubLocation(raw);
+  const description = formatStubhubDescription(raw);
+  const url = sanitizeUrl(raw?.url);
+
+  return {
+    id: idx + 1,
+    title,
+    date,
+    time,
+    location,
+    category: 'music',
+    description,
+    url
+  };
+}
+
+function parseStubhubDate(raw: any): string {
+  const url = typeof raw?.url === 'string' ? raw.url : '';
+  const urlMatch = url.match(/-(\d{1,2})-(\d{1,2})-(\d{4})(?:\b|\/)/);
+  if (urlMatch) {
+    const [, monthStr, dayStr, yearStr] = urlMatch;
+    return `${yearStr}-${monthStr.padStart(2, '0')}-${dayStr.padStart(2, '0')}`;
+  }
+
+  const formatted = typeof raw?.formattedDateWithoutYear === 'string' ? raw.formattedDateWithoutYear.trim() : '';
+  const yearFromName = extractYear(raw?.name);
+  const monthDay = formatted.split(/\s+/);
+  if (monthDay.length >= 2) {
+    const month = monthNameToNumber(monthDay[0]);
+    const day = parseInt(monthDay[1], 10);
+    if (month && day) {
+      let year = yearFromName ?? new Date().getFullYear();
+      let iso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const today = new Date();
+      const todayIso = today.toISOString().slice(0, 10);
+      if (iso < todayIso) {
+        iso = `${year + 1}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      }
+      return iso;
+    }
+  }
+
+  return '';
+}
+
+function parseStubhubTime(rawTime: any): string {
+  if (typeof rawTime !== 'string') return '';
+  const time = rawTime.trim();
+  if (!time) return '';
+  if (/^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(time)) {
+    const [h, rest] = time.split(':');
+    const minutesAndPeriod = rest.trim().toUpperCase();
+    return `${String(parseInt(h, 10))}:${minutesAndPeriod}`;
+  }
+  if (/^\d{1,2}\s?(AM|PM)$/i.test(time)) {
+    const parts = time.split(/\s+/);
+    return `${parseInt(parts[0], 10)} ${parts[1].toUpperCase()}`;
+  }
+  return '';
+}
+
+function formatStubhubLocation(raw: any): string {
+  if (typeof raw?.venueName === 'string' && raw.venueName.trim()) {
+    return raw.venueName.trim();
+  }
+  if (typeof raw?.formattedVenueLocation === 'string' && raw.formattedVenueLocation.trim()) {
+    return raw.formattedVenueLocation.trim();
+  }
+  return 'Tampa, FL';
+}
+
+function formatStubhubDescription(raw: any): string {
+  const parts: string[] = [];
+  if (typeof raw?.dayOfWeek === 'string' && raw.dayOfWeek.trim()) parts.push(raw.dayOfWeek.trim());
+  if (typeof raw?.formattedDateWithoutYear === 'string' && raw.formattedDateWithoutYear.trim()) parts.push(raw.formattedDateWithoutYear.trim());
+  if (typeof raw?.formattedVenueLocation === 'string' && raw.formattedVenueLocation.trim()) parts.push(raw.formattedVenueLocation.trim());
+  return parts.join(' • ');
+}
+
+function extractYear(value: any): number | null {
+  if (typeof value !== 'string') return null;
+  const match = value.match(/(20\d{2})/);
+  if (!match) return null;
+  return parseInt(match[1], 10);
+}
+
+function monthNameToNumber(month: string): number | null {
+  const lookup: Record<string, number> = {
+    january: 1,
+    february: 2,
+    march: 3,
+    april: 4,
+    may: 5,
+    june: 6,
+    july: 7,
+    august: 8,
+    september: 9,
+    october: 10,
+    november: 11,
+    december: 12,
+    jan: 1,
+    feb: 2,
+    mar: 3,
+    apr: 4,
+    jun: 6,
+    jul: 7,
+    aug: 8,
+    sep: 9,
+    sept: 9,
+    oct: 10,
+    nov: 11,
+    dec: 12
+  };
+  const key = month.toLowerCase();
+  return lookup[key] ?? null;
 }
 
 function toNYDateParts(iso?: string): { date: string; time: string } {

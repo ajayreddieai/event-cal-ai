@@ -5,17 +5,54 @@ import React from 'react';
 type Event = {
   id: number;
   title: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   time: string;
   location: string;
-  category: string;
   description: string;
   url?: string;
 };
 
-const monthNames = [
-  'January','February','March','April','May','June','July','August','September','October','November','December'
-];
+const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+const monthYearFormatter = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' });
+const fullDateFormatter = new Intl.DateTimeFormat('en-US', {
+  weekday: 'short',
+  month: 'long',
+  day: 'numeric',
+});
+
+function dateKey(year: number, month: number, day: number) {
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function parseDateKey(key: string) {
+  const [yearString, monthString, dayString] = key.split('-');
+  const year = Number(yearString);
+  const month = Number(monthString);
+  const day = Number(dayString);
+  if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
+    return new Date();
+  }
+  return new Date(year, month - 1, day);
+}
+
+function timeToMinutes(time: string) {
+  if (!time) return 24 * 60;
+  const match = time.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)?$/i);
+  if (!match) return 24 * 60;
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const period = match[3]?.toUpperCase();
+  if (period === 'PM' && hours < 12) {
+    hours += 12;
+  } else if (period === 'AM' && hours === 12) {
+    hours = 0;
+  }
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+    return 24 * 60;
+  }
+  return hours * 60 + minutes;
+}
 
 export default function Page() {
   const [currentDate, setCurrentDate] = React.useState(() => new Date());
@@ -26,327 +63,307 @@ export default function Page() {
 
   React.useEffect(() => {
     let cancelled = false;
-    async function load() {
+
+    async function loadEvents() {
       try {
         setLoading(true);
         setError(null);
-        
+
         const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
         const staticPath = `${basePath}/data/events.json`;
 
-        // Try to fetch from the static JSON file first (for GitHub Pages)
-        let res = await fetch(staticPath, { cache: 'no-store' });
-        
-        // Fallback to API route (for local development)
-        if (!res.ok) {
-          res = await fetch('/api/events', { cache: 'no-store' });
+        let response = await fetch(staticPath, { cache: 'no-store' });
+        if (!response.ok) {
+          response = await fetch('/api/events', { cache: 'no-store' });
         }
-        
-        if (!res.ok) throw new Error('Failed to load events');
-        const data = await res.json();
-        const incoming: Event[] = (data?.events || []).map((e: any) => ({
-          id: Number(e.id) || Math.floor(Math.random() * 1e9),
-          title: e.title,
-          date: e.date,
-          time: e.time || '',
-          location: e.location || '',
-          category: e.category || 'music',
-          description: e.description || '',
-          url: e.url
+
+        if (!response.ok) {
+          throw new Error('Unable to load events right now.');
+        }
+
+        const payload = await response.json();
+        const incoming: Event[] = (payload?.events ?? []).map((event: any, index: number) => ({
+          id: Number(event?.id) || index,
+          title: String(event?.title ?? 'Untitled event'),
+          date: String(event?.date ?? ''),
+          time: String(event?.time ?? ''),
+          location: String(event?.location ?? ''),
+          description: String(event?.description ?? ''),
+          url: event?.url ? String(event.url) : undefined,
         }));
-        if (!cancelled) setEvents(incoming);
-      } catch (e: any) {
-        if (!cancelled) setError(e?.message || 'Failed to load events');
+
+        if (!cancelled) {
+          setEvents(incoming);
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setError(err?.message || 'Unable to load events right now.');
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
-    load();
-    return () => { cancelled = true; };
+
+    loadEvents();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Force September 2025 as default visible month if today not in 2025-09, to mirror demo
+  const selectDate = React.useCallback((date: Date, alignMonth = false) => {
+    if (Number.isNaN(date.getTime())) return;
+    if (alignMonth) {
+      setCurrentDate(new Date(date.getFullYear(), date.getMonth(), 1));
+    }
+    setSelectedDate(dateKey(date.getFullYear(), date.getMonth(), date.getDate()));
+  }, []);
+
   React.useEffect(() => {
-    setCurrentDate(new Date(2025, 8, 1));
-  }, []);
+    const preset = new Date(2025, 8, 1);
+    selectDate(preset, true);
+  }, [selectDate]);
 
-  const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-  const daysInMonth = lastDay.getDate();
-  const startingDayOfWeek = firstDay.getDay();
+  const eventsByDate = React.useMemo(() => {
+    const map: Record<string, Event[]> = {};
+    for (const event of events) {
+      if (!event.date) continue;
+      if (!map[event.date]) {
+        map[event.date] = [];
+      }
+      map[event.date].push(event);
+    }
+    return map;
+  }, [events]);
 
-  function previousMonth() {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-    setSelectedDate(null);
-  }
+  const now = new Date();
+  const todayKey = dateKey(now.getFullYear(), now.getMonth(), now.getDate());
 
-  function nextMonth() {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-    setSelectedDate(null);
-  }
+  const monthLabel = monthYearFormatter.format(currentDate);
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const startingDayOfWeek = firstDayOfMonth.getDay();
 
-  function dateKey(year: number, month: number, day: number) {
-    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  }
+  const shiftMonth = React.useCallback(
+    (offset: number) => {
+      const target = new Date(currentYear, currentMonth + offset, 1);
+      selectDate(target, true);
+    },
+    [currentYear, currentMonth, selectDate],
+  );
 
-  function eventsFor(dateStr: string) {
-    return events.filter(e => e.date === dateStr);
-  }
+  const goToToday = React.useCallback(() => {
+    selectDate(new Date(), true);
+  }, [selectDate]);
 
-  const gridCells: React.ReactNode[] = [];
-  // Leading blanks (prev month)
-  for (let i = 0; i < startingDayOfWeek; i++) {
-    gridCells.push(
-      <div key={`prev-${i}`} style={styles.calendarDayOther} />
-    );
-  }
-  // Current month days
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dStr = dateKey(currentDate.getFullYear(), currentDate.getMonth(), day);
-    const dayEvents = eventsFor(dStr);
-    gridCells.push(
-      <div key={`day-${day}`} style={styles.calendarDay} onClick={() => setSelectedDate(dStr)}>
-        <div style={styles.dateNumber}>{day}</div>
-        {dayEvents.slice(0, 3).map(ev => (
-          <div key={ev.id} style={{...styles.eventItem, ...categoryStyle(ev.category)}} title={ev.title}>
-            {ev.title.length > 18 ? ev.title.slice(0, 18) + '…' : ev.title}
-          </div>
-        ))}
-        {dayEvents.length > 3 && (
-          <div style={styles.eventItem}>+{dayEvents.length - 3} more</div>
-        )}
+  const selectedEvents = React.useMemo(() => {
+    if (!selectedDate) return [];
+    const dayEvents = eventsByDate[selectedDate];
+    if (!dayEvents) return [];
+    return [...dayEvents].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+  }, [selectedDate, eventsByDate]);
+
+  const eventCount = selectedEvents.length;
+  const selectedDateLabel = selectedDate ? fullDateFormatter.format(parseDateKey(selectedDate)) : null;
+
+  const renderDayCell = (date: Date, isAdjacent: boolean) => {
+    const cellKey = dateKey(date.getFullYear(), date.getMonth(), date.getDate());
+    const isSelected = selectedDate === cellKey;
+    const isToday = cellKey === todayKey;
+    const dayEvents = eventsByDate[cellKey] ?? [];
+    const hasEvents = dayEvents.length > 0;
+
+    const classNames = ['calendar-day'];
+    if (isAdjacent) classNames.push('calendar-day--adjacent');
+    if (isSelected) classNames.push('is-selected');
+    if (isToday) classNames.push('is-today');
+    if (hasEvents) classNames.push('has-events');
+
+    const truncatedEvents = dayEvents.slice(0, 3);
+    const ariaParts = [fullDateFormatter.format(date)];
+    if (hasEvents) {
+      ariaParts.push(`${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'}`);
+    }
+
+    return (
+      <div
+        key={`${isAdjacent ? 'adjacent-' : ''}${cellKey}`}
+        className={classNames.filter(Boolean).join(' ')}
+        role="button"
+        tabIndex={0}
+        aria-pressed={isSelected}
+        aria-label={ariaParts.join(', ')}
+        onClick={() => {
+          selectDate(new Date(date.getFullYear(), date.getMonth(), date.getDate()), isAdjacent);
+        }}
+        onKeyDown={(evt) => {
+          if (evt.key === 'Enter' || evt.key === ' ') {
+            evt.preventDefault();
+            selectDate(new Date(date.getFullYear(), date.getMonth(), date.getDate()), isAdjacent);
+          }
+        }}
+      >
+        <span className="calendar-day__label">{date.getDate()}</span>
+        <div className="calendar-day__events">
+          {truncatedEvents.map((event) => (
+            <span key={event.id} className="calendar-event-pill" title={event.title}>
+              <span className="calendar-event-pill__title">
+                {event.title.length > 22 ? `${event.title.slice(0, 22)}...` : event.title}
+              </span>
+              {event.time && <span className="calendar-event-pill__time">{event.time}</span>}
+            </span>
+          ))}
+          {dayEvents.length > truncatedEvents.length && (
+            <span className="calendar-day__more">
+              +{dayEvents.length - truncatedEvents.length} more
+            </span>
+          )}
+        </div>
       </div>
     );
-  }
-  // Trailing blanks to fill 6 rows (42 cells)
-  const remaining = 42 - gridCells.length;
-  for (let i = 0; i < remaining; i++) {
-    gridCells.push(<div key={`next-${i}`} style={styles.calendarDayOther} />);
+  };
+
+  const gridCells: React.ReactNode[] = [];
+
+  for (let i = startingDayOfWeek; i > 0; i -= 1) {
+    const prevDate = new Date(currentYear, currentMonth, 1 - i);
+    gridCells.push(renderDayCell(prevDate, true));
   }
 
-  const selectedEvents = selectedDate ? eventsFor(selectedDate) : [];
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const date = new Date(currentYear, currentMonth, day);
+    gridCells.push(renderDayCell(date, false));
+  }
+
+  const totalCells = gridCells.length;
+  const targetCells = totalCells <= 35 ? 35 : 42;
+
+  for (let i = 1; i <= targetCells - totalCells; i += 1) {
+    const nextDate = new Date(currentYear, currentMonth + 1, i);
+    gridCells.push(renderDayCell(nextDate, true));
+  }
 
   return (
-    <div style={styles.page}>
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>📅 Event Calendar</h1>
-          <p style={styles.subtitle}>Discover and organize local events</p>
-        </div>
+    <div className="calendar-page">
+      <div className="calendar-page__container">
+        <header className="calendar-page__header">
+          <h1 className="calendar-page__title">Event Calendar</h1>
+          <p className="calendar-page__subtitle">
+            Minimal monochrome agenda inspired by Apple Calendar.
+          </p>
+        </header>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20 }}>
-          <div style={styles.card}>
-            <div style={styles.calHeader}>
-              <button onClick={previousMonth} style={styles.navBtn}>‹</button>
-              <div style={styles.monthYear}>{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</div>
-              <button onClick={nextMonth} style={styles.navBtn}>›</button>
-            </div>
-            {loading && (
-              <div style={{ padding: 12, color: '#fff', background: '#007AFF' }}>Loading latest events…</div>
-            )}
-            {error && (
-              <div style={{ padding: 12, color: '#fff', background: '#FF3B30' }}>{error}</div>
-            )}
-            <div style={styles.weekHeader}>
-              {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
-                <div key={d} style={styles.weekdayHeader}>{d}</div>
-              ))}
-            </div>
-            <div style={styles.calendarGrid}>{gridCells}</div>
-          </div>
-
-          <div style={styles.sidebar}>
-            <div style={styles.sectionTitle}>📊 {selectedDate ? `Events on ${selectedDate}` : 'Pick a date'}</div>
-            <div style={styles.eventList}>
-              {selectedDate && selectedEvents.length === 0 && (
-                <p style={{ color: '#666', textAlign: 'center' }}>No events scheduled</p>
-              )}
-              {selectedEvents.map(ev => (
-                <div key={ev.id} style={styles.eventCard}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                    <a href={ev.url} target="_blank" rel="noopener noreferrer" style={styles.eventLink}>
-                      {ev.title}
-                    </a>
-                    {ev.url && (
-                      <a href={ev.url} target="_blank" rel="noopener noreferrer" style={styles.chipLink}>Link ↗</a>
-                    )}
-                  </div>
-                  <div style={styles.eventMeta}>⏰ {ev.time}</div>
-                  <div>
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(ev.location)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ ...styles.eventMeta, color: '#0A84FF', textDecoration: 'none' }}
-                    >
-                      📍 {ev.location}
-                    </a>
-                  </div>
-                  <div style={{ fontSize: 12, color: '#8E8E93', marginTop: 6 }}>{ev.category}</div>
+        <div className="calendar-page__layout">
+          <section className="calendar-card" aria-label="Monthly calendar">
+            <div className="calendar-card__top">
+              <div className="calendar-card__controls">
+                <button type="button" className="nav-button nav-button--text" onClick={goToToday}>
+                  Today
+                </button>
+                <div className="calendar-card__current">
+                  <button
+                    type="button"
+                    className="nav-button"
+                    onClick={() => shiftMonth(-1)}
+                    aria-label="Go to previous month"
+                  >
+                    <span aria-hidden="true">&#8249;</span>
+                  </button>
+                  <h2 className="calendar-card__month">{monthLabel}</h2>
+                  <button
+                    type="button"
+                    className="nav-button"
+                    onClick={() => shiftMonth(1)}
+                    aria-label="Go to next month"
+                  >
+                    <span aria-hidden="true">&#8250;</span>
+                  </button>
                 </div>
-              ))}
+              </div>
+
+              {(loading || error) && (
+                <div className="calendar-card__status">
+                  {error ? (
+                    <div className="banner banner--error" role="alert">
+                      {error}
+                    </div>
+                  ) : (
+                    <div className="banner" role="status">
+                      Refreshing events...
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
+
+            <div>
+              <div className="calendar-card__weekdays">
+                {weekdays.map((day) => (
+                  <span key={day} className="calendar-card__weekday">
+                    {day}
+                  </span>
+                ))}
+              </div>
+              <div className="calendar-grid">{gridCells}</div>
+            </div>
+          </section>
+
+          <section className="event-panel" aria-live="polite">
+            <header className="event-panel__header">
+              <span className="event-panel__title">Schedule</span>
+              <h2 className="event-panel__date">{selectedDateLabel ?? 'Select a day'}</h2>
+              {selectedDate && (
+                <span className="event-panel__count">
+                  {eventCount} {eventCount === 1 ? 'event' : 'events'}
+                </span>
+              )}
+            </header>
+
+            <div className="event-panel__body">
+              {!selectedDate && (
+                <p className="event-panel__empty">Choose a day to view its agenda.</p>
+              )}
+              {selectedDate && eventCount === 0 && (
+                <p className="event-panel__empty">No events scheduled.</p>
+              )}
+              {eventCount > 0 && (
+                <ul className="event-list">
+                  {selectedEvents.map((event) => (
+                    <li key={event.id} className="event-card">
+                      <span className="event-card__time">{event.time || 'All day'}</span>
+                      {event.url ? (
+                        <a
+                          href={event.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="event-card__title"
+                        >
+                          {event.title}
+                        </a>
+                      ) : (
+                        <span className="event-card__title">{event.title}</span>
+                      )}
+                      {event.location && (
+                        <span className="event-card__meta">Location · {event.location}</span>
+                      )}
+                      {event.description && (
+                        <p className="event-card__description">{event.description}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
         </div>
       </div>
     </div>
   );
 }
-
-function categoryStyle(category: string): React.CSSProperties {
-  const map: Record<string, string> = {
-    business: '#FF9500',
-    technology: '#34C759',
-    arts: '#AF52DE',
-    music: '#FF2D70',
-    sports: '#FF3B30',
-    networking: '#5856D6',
-  };
-  return { background: map[category] || '#007AFF' };
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    minHeight: '100vh',
-    background: '#000',
-    padding: 20,
-  },
-  container: {
-    maxWidth: 1200,
-    margin: '0 auto',
-  },
-  header: {
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#fff',
-  },
-  title: {
-    fontSize: 36,
-    margin: 0,
-    color: '#fff'
-  },
-  subtitle: {
-    fontSize: 16,
-    opacity: 0.8,
-    marginTop: 6,
-    color: '#E5E5EA'
-  },
-  card: {
-    background: '#111',
-    borderRadius: 16,
-    boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-    overflow: 'hidden',
-    border: '1px solid #1C1C1E'
-  },
-  calHeader: {
-    background: '#0A84FF',
-    color: '#fff',
-    padding: 16,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  navBtn: {
-    background: 'rgba(255,255,255,0.2)',
-    color: '#fff',
-    border: 'none',
-    width: 36,
-    height: 36,
-    borderRadius: '50%',
-    cursor: 'pointer'
-  },
-  monthYear: {
-    fontWeight: 700,
-    fontSize: 18,
-  },
-  weekHeader: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(7, 1fr)'
-  },
-  weekdayHeader: {
-    background: '#1C1C1E',
-    padding: '12px 4px',
-    textAlign: 'center',
-    fontWeight: 600,
-    color: '#A1A1A6',
-    borderBottom: '1px solid #2C2C2E'
-  },
-  calendarGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(7, 1fr)'
-  },
-  calendarDay: {
-    minHeight: 110,
-    padding: 6,
-    borderRight: '1px solid #2C2C2E',
-    borderBottom: '1px solid #2C2C2E',
-    cursor: 'pointer'
-  },
-  calendarDayOther: {
-    minHeight: 110,
-    padding: 6,
-    borderRight: '1px solid #2C2C2E',
-    borderBottom: '1px solid #2C2C2E',
-    background: '#0C0C0D'
-  },
-  dateNumber: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: '#E5E5EA',
-    marginBottom: 6,
-  },
-  eventItem: {
-    background: '#0A84FF',
-    color: '#fff',
-    padding: '3px 6px',
-    borderRadius: 10,
-    fontSize: 12,
-    marginBottom: 4,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis'
-  },
-  sidebar: {
-    background: '#111',
-    borderRadius: 16,
-    boxShadow: '0 10px 20px rgba(0,0,0,0.4)',
-    padding: 16,
-    height: 'fit-content',
-    border: '1px solid #1C1C1E'
-  },
-  sectionTitle: {
-    fontWeight: 700,
-    fontSize: 18,
-    marginBottom: 12,
-    color: '#fff'
-  },
-  eventList: {
-    maxHeight: 420,
-    overflowY: 'auto'
-  },
-  eventCard: {
-    background: '#1C1C1E',
-    borderLeft: '4px solid #0A84FF',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10
-  },
-  eventMeta: {
-    fontSize: 12,
-    color: '#A1A1A6',
-  },
-  eventLink: {
-    color: '#fff',
-    textDecoration: 'none',
-    fontWeight: 600,
-  },
-  chipLink: {
-    color: '#0A84FF',
-    textDecoration: 'none',
-    fontSize: 12,
-    fontWeight: 600
-  }
-};
 
 
 
