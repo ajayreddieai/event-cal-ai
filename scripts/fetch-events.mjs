@@ -34,11 +34,112 @@ function sanitizeUrl(url) {
 
 function normalizeCategory(cat) {
   const c = (cat || '').toLowerCase();
-  const known = ['business','technology','arts','music','sports','networking','nightlife','festival','concert','theater','comedy','family'];
+  const known = ['business','technology','arts','music','sports','networking','nightlife','festival','concert','theater','comedy','family','professional'];
   for (const k of known) {
     if (c.includes(k)) return k;
   }
   return 'music';
+}
+
+async function extractEventsWithFirecrawl(sources, category) {
+  const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY || process.env.FIRECRAWL_KEY || process.env.FIRECRAWL_TOKEN;
+  const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_KEY;
+  if (!FIRECRAWL_API_KEY || !OPENROUTER_API_KEY) {
+    return [];
+  }
+
+  try {
+    const firecrawl = new Firecrawl({ apiKey: FIRECRAWL_API_KEY });
+    const results = await Promise.all(
+      sources.map(async (url) => {
+        try {
+          const doc = await firecrawl.scrape(url, {
+            formats: ['markdown', 'links'],
+            onlyMainContent: false,
+            waitFor: 1500,
+            timeout: 30000,
+            maxAge: 0
+          });
+          return { url, markdown: doc?.markdown || '', links: Array.isArray(doc?.links) ? doc.links : [] };
+        } catch (err) {
+          console.warn(`Firecrawl scrape failed for ${url}:`, err?.message || err);
+          return { url, markdown: '', links: [] };
+        }
+      })
+    );
+
+    const combinedMarkdown = results
+      .map((r) => (r.markdown ? `# SOURCE: ${r.url}\n\n${r.markdown}` : ''))
+      .filter(Boolean)
+      .join('\n\n---\n\n');
+
+    if (!combinedMarkdown) return [];
+
+    const combinedLinks = results.flatMap((r) => r.links);
+    const linksJson = JSON.stringify(combinedLinks).slice(0, 15000);
+
+    const system = `You are an expert event parser. Extract a clean JSON array of events from the given markdown about Tampa events.\nRules:\n- Output ONLY valid JSON, no prose.\n- Each event must include: id (string), title (string), description (string, can be short), category (string), location (string), startDate (YYYY-MM-DD), startTime (string, e.g. 7:30 PM), url (string). URL is REQUIRED. If multiple candidate links exist, choose the event detail or ticket link.\n- If only a date-time string is present, split into startDate and startTime.\n- If month/day names are present without year, assume the next occurrence from today.\n- For multi-day events, use the first date as startDate and startTime as the first start time you can find.\n- Location can be a venue or city; prefer venue if available.\n- Set the category field for every event to "${category}".`;
+
+    const user = `Markdown to parse (multi-source):\n\n${combinedMarkdown.slice(0, 12000)}\n\nLINKS (JSON array of discovered links for reference):\n${linksJson}`;
+
+    const completionRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://calendar-app.local',
+        'X-Title': 'Calendar-App Event Extractor'
+      },
+      body: JSON.stringify({
+        model: 'x-ai/grok-4-fast:free',
+        temperature: 0,
+        max_tokens: 2000,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user }
+        ]
+      })
+    });
+
+    if (!completionRes.ok) {
+      console.warn('OpenRouter completion failed with status', completionRes.status);
+      return [];
+    }
+
+    let content = '[]';
+    try {
+      const completionJson = await completionRes.json();
+      content = completionJson?.choices?.[0]?.message?.content || '[]';
+    } catch (err) {
+      console.warn('Failed to parse OpenRouter response JSON', err);
+      return [];
+    }
+
+    let extracted = [];
+    try {
+      extracted = JSON.parse(content);
+      if (!Array.isArray(extracted)) extracted = [];
+    } catch (err) {
+      console.warn('LLM output was not valid JSON', err);
+      return [];
+    }
+
+    return extracted
+      .map((e, idx) => ({
+        id: idx + 1,
+        title: e.title || 'Untitled Event',
+        date: (e.startDate || '').slice(0, 10),
+        time: e.startTime || '',
+        location: e.location || 'Tampa, FL',
+        category,
+        description: e.description || '',
+        url: sanitizeUrl(e.url)
+      }))
+      .filter((ev) => ev.date);
+  } catch (err) {
+    console.warn('Firecrawl pipeline failed:', err?.message || err);
+    return [];
+  }
 }
 
 async function fetchPoshEvents() {
@@ -80,7 +181,7 @@ async function fetchPoshEvents() {
       date,
       time,
       location,
-      category: 'music',
+      category: 'concert',
       description,
       url: sanitizeUrl(url)
     };
@@ -200,7 +301,7 @@ function toStubhubEvent(raw, idx) {
     date,
     time: parseStubhubTime(raw?.formattedTime),
     location: formatStubhubLocation(raw),
-    category: 'music',
+    category: 'concert',
     description: formatStubhubDescription(raw),
     url: sanitizeUrl(raw?.url)
   };
@@ -281,126 +382,25 @@ async function fetchStubhubEvents() {
 }
 
 async function fetchFirecrawlEvents() {
-  const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY || process.env.FIRECRAWL_KEY || process.env.FIRECRAWL_TOKEN;
-  const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_KEY;
-  if (!FIRECRAWL_API_KEY || !OPENROUTER_API_KEY) {
-    return [];
-  }
+  const sunsetPages = Array.from({ length: 5 }, (_, i) => `https://www.sunsettampa.com/events/page/${i + 1}/`);
+  const sources = [
+    'https://shotgun.live/en/cities/tampa',
+    'https://dice.fm/browse/Tampa:27.947974:-82.457098',
+    ...sunsetPages
+  ];
+  return extractEventsWithFirecrawl(sources, 'concert');
+}
 
-  try {
-    const firecrawl = new Firecrawl({ apiKey: FIRECRAWL_API_KEY });
-    const sunsetPages = Array.from({ length: 5 }, (_, i) => `https://www.sunsettampa.com/events/page/${i + 1}/`);
-    const sources = [
-      'https://shotgun.live/en/cities/tampa',
-      'https://dice.fm/browse/Tampa:27.947974:-82.457098',
-      ...sunsetPages
-    ];
-
-    const results = await Promise.all(
-      sources.map(async (url) => {
-        try {
-          const doc = await firecrawl.scrape(url, {
-            formats: ['markdown', 'links'],
-            onlyMainContent: false,
-            waitFor: 1500,
-            timeout: 30000,
-            maxAge: 0
-          });
-          return { url, markdown: doc?.markdown || '', links: Array.isArray(doc?.links) ? doc.links : [] };
-        } catch (err) {
-          console.warn(`Firecrawl scrape failed for ${url}:`, err?.message || err);
-          return { url, markdown: '', links: [] };
-        }
-      })
-    );
-
-    const combinedMarkdown = results
-      .map((r) => (r.markdown ? `# SOURCE: ${r.url}\n\n${r.markdown}` : ''))
-      .filter(Boolean)
-      .join('\n\n---\n\n');
-
-    if (!combinedMarkdown) return [];
-
-    const combinedLinks = results.flatMap((r) => r.links);
-    const linksJson = JSON.stringify(combinedLinks).slice(0, 15000);
-
-    const system = `You are an expert event parser. Extract a clean JSON array of events from the given markdown about Tampa events.
-Rules:
-- Output ONLY valid JSON, no prose.
-- Each event must include: id (string), title (string), description (string, can be short), category (string), location (string), startDate (YYYY-MM-DD), startTime (string, e.g. 7:30 PM), url (string). URL is REQUIRED. If multiple candidate links exist, choose the event detail or ticket link.
-- If only a date-time string is present, split into startDate and startTime.
-- If month/day names are present without year, assume the next occurrence from today.
-- For multi-day events, use the first date as startDate and startTime as the first start time you can find.
-- Infer category from context (music, arts, business, technology, sports, networking, nightlife, festival, concert, theater, comedy, family) if possible.
-- Location can be a venue or city; prefer venue if available.`;
-
-    const user = `Markdown to parse (multi-source):\n\n${combinedMarkdown.slice(0, 12000)}\n\nLINKS (JSON array of discovered links for reference):\n${linksJson}`;
-
-    const completionRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://calendar-app.local',
-        'X-Title': 'Calendar-App Event Extractor'
-      },
-      body: JSON.stringify({
-        model: 'x-ai/grok-4-fast:free',
-        temperature: 0,
-        max_tokens: 2000,
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: user }
-        ]
-      })
-    });
-
-    if (!completionRes.ok) {
-      console.warn('OpenRouter completion failed with status', completionRes.status);
-      return [];
-    }
-
-    let content = '[]';
-    try {
-      const completionJson = await completionRes.json();
-      content = completionJson?.choices?.[0]?.message?.content || '[]';
-    } catch (err) {
-      console.warn('Failed to parse OpenRouter response JSON', err);
-      return [];
-    }
-
-    let extracted = [];
-    try {
-      extracted = JSON.parse(content);
-      if (!Array.isArray(extracted)) extracted = [];
-    } catch (err) {
-      console.warn('LLM output was not valid JSON', err);
-      return [];
-    }
-
-    return extracted
-      .map((e, idx) => ({
-        id: idx + 1,
-        title: e.title || 'Untitled Event',
-        date: (e.startDate || '').slice(0, 10),
-        time: e.startTime || '',
-        location: e.location || 'Tampa, FL',
-        category: normalizeCategory(e.category),
-        description: e.description || '',
-        url: sanitizeUrl(e.url)
-      }))
-      .filter((ev) => ev.date);
-  } catch (err) {
-    console.warn('Firecrawl pipeline failed:', err?.message || err);
-    return [];
-  }
+async function fetchEventbriteEvents() {
+  const eventbritePages = Array.from({ length: 5 }, (_, i) => `https://www.eventbrite.com/d/fl--tampa/events--next-month/ai/?page=${i + 1}`);
+  return extractEventsWithFirecrawl(eventbritePages, 'professional');
 }
 
 function dedupeEvents(events) {
   const seen = new Set();
   const out = [];
   for (const ev of events) {
-    const key = `${(ev.title || '').toLowerCase()}|${ev.date}`;
+    const key = `${(ev.title || '').toLowerCase()}|${ev.date}|${(ev.category || '').toLowerCase()}`;
     if (seen.has(key)) continue;
     seen.add(key);
     out.push(ev);
@@ -409,10 +409,11 @@ function dedupeEvents(events) {
 }
 
 async function main() {
-  const [posh, stubhub, llmEvents] = await Promise.all([
+  const [posh, stubhub, llmEvents, professionalEvents] = await Promise.all([
     fetchPoshEvents(),
     fetchStubhubEvents(),
-    fetchFirecrawlEvents()
+    fetchFirecrawlEvents(),
+    fetchEventbriteEvents()
   ]);
 
   if (stubhub.length === 0) {
@@ -421,8 +422,11 @@ async function main() {
   if (llmEvents.length === 0) {
     console.warn('Dice/Shotgun events unavailable (Firecrawl or OpenRouter missing/failing).');
   }
+  if (professionalEvents.length === 0) {
+    console.warn('Eventbrite professional events unavailable (Firecrawl or OpenRouter missing/failing).');
+  }
 
-  const merged = dedupeEvents([...posh, ...stubhub, ...llmEvents]);
+  const merged = dedupeEvents([...posh, ...stubhub, ...llmEvents, ...professionalEvents]);
   const payload = { events: merged, lastUpdated: new Date().toISOString() };
 
   const outDir = path.join(process.cwd(), 'data');

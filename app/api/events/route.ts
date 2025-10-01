@@ -62,10 +62,18 @@ export async function GET() {
     // Always include marketplace events
     const poshEvents = await fetchPoshEvents();
     const stubhubEvents = await fetchStubhubEvents();
-    const llmEvents = await fetchFirecrawlEvents();
+    const llmEvents = await fetchConcertFirecrawlEvents();
+    const professionalEvents = await fetchProfessionalEvents();
+
+    if (llmEvents.length === 0) {
+      console.warn('Firecrawl concert events unavailable (Firecrawl or OpenRouter missing/failing).');
+    }
+    if (professionalEvents.length === 0) {
+      console.warn('Eventbrite professional events unavailable (Firecrawl or OpenRouter missing/failing).');
+    }
 
     // Merge and dedupe events
-    const merged = dedupeEvents([...poshEvents, ...stubhubEvents, ...llmEvents]);
+    const merged = dedupeEvents([...poshEvents, ...stubhubEvents, ...llmEvents, ...professionalEvents]);
 
     cached = { at: Date.now(), events: merged };
     return NextResponse.json({ events: merged }, { status: 200 });
@@ -76,11 +84,10 @@ export async function GET() {
 
 function normalizeCategory(cat?: string): string {
   const c = (cat || '').toLowerCase();
-  const known = ['business','technology','arts','music','sports','networking','nightlife','festival','concert','theater','comedy','family'];
-  for (const k of known) {
-    if (c.includes(k)) return k;
+  if (c.includes('professional') || c.includes('business') || c.includes('technology')) {
+    return 'professional';
   }
-  return 'music';
+  return 'concert';
 }
 
 function sanitizeUrl(url?: string): string | undefined {
@@ -141,7 +148,7 @@ async function fetchPoshEvents(): Promise<CalendarEvent[]> {
       date,
       time,
       location,
-      category: 'music',
+      category: 'concert',
       description,
       url: sanitizeUrl(url)
     };
@@ -233,7 +240,7 @@ async function fetchStubhubEvents(): Promise<CalendarEvent[]> {
   }
 }
 
-async function fetchFirecrawlEvents(): Promise<CalendarEvent[]> {
+async function extractEventsWithFirecrawl(sources: string[], category: 'concert' | 'professional'): Promise<CalendarEvent[]> {
   const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY || process.env.FIRECRAWL_KEY || process.env.FIRECRAWL_TOKEN;
   const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_KEY;
   if (!FIRECRAWL_API_KEY || !OPENROUTER_API_KEY) {
@@ -242,13 +249,6 @@ async function fetchFirecrawlEvents(): Promise<CalendarEvent[]> {
 
   try {
     const firecrawl = new Firecrawl({ apiKey: FIRECRAWL_API_KEY });
-    const sunsetPages = Array.from({ length: 5 }, (_, i) => `https://www.sunsettampa.com/events/page/${i + 1}/`);
-    const sources = [
-      'https://shotgun.live/en/cities/tampa',
-      'https://dice.fm/browse/Tampa:27.947974:-82.457098',
-      ...sunsetPages
-    ];
-
     const results = await Promise.all(
       sources.map(async (url) => {
         try {
@@ -277,15 +277,7 @@ async function fetchFirecrawlEvents(): Promise<CalendarEvent[]> {
     const combinedLinks = results.flatMap((r) => r.links);
     const linksJson = JSON.stringify(combinedLinks).slice(0, 15000);
 
-    const system = `You are an expert event parser. Extract a clean JSON array of events from the given markdown about Tampa events.
-Rules:
-- Output ONLY valid JSON, no prose.
-- Each event must include: id (string), title (string), description (string, can be short), category (string), location (string), startDate (YYYY-MM-DD), startTime (string, e.g. 7:30 PM), url (string). URL is REQUIRED. If multiple candidate links exist, choose the event detail or ticket link.
-- If only a date-time string is present, split into startDate and startTime.
-- If month/day names are present without year, assume the next occurrence from today.
-- For multi-day events, use the first date as startDate and startTime as the first start time you can find.
-- Infer category from context (music, arts, business, technology, sports, networking, nightlife, festival, concert, theater, comedy, family) if possible.
-- Location can be a venue or city; prefer venue if available.`;
+    const system = `You are an expert event parser. Extract a clean JSON array of events from the given markdown about Tampa events.\nRules:\n- Output ONLY valid JSON, no prose.\n- Each event must include: id (string), title (string), description (string, can be short), category (string), location (string), startDate (YYYY-MM-DD), startTime (string, e.g. 7:30 PM), url (string). URL is REQUIRED. If multiple candidate links exist, choose the event detail or ticket link.\n- If only a date-time string is present, split into startDate and startTime.\n- If month/day names are present without year, assume the next occurrence from today.\n- For multi-day events, use the first date as startDate and startTime as the first start time you can find.\n- Location can be a venue or city; prefer venue if available.\n- Set the category for every event to "${category}".`;
 
     const user = `Markdown to parse (multi-source):\n\n${combinedMarkdown.slice(0, 12000)}\n\nLINKS (JSON array of discovered links for reference):\n${linksJson}`;
 
@@ -338,7 +330,7 @@ Rules:
         date: (event.startDate || '').slice(0, 10),
         time: event.startTime || '',
         location: event.location || 'Tampa, FL',
-        category: normalizeCategory(event.category),
+        category,
         description: event.description || '',
         url: sanitizeUrl(event.url)
       }))
@@ -347,6 +339,21 @@ Rules:
     console.warn('Firecrawl pipeline failed:', (err as Error)?.message || err);
     return [];
   }
+}
+
+async function fetchConcertFirecrawlEvents(): Promise<CalendarEvent[]> {
+  const sunsetPages = Array.from({ length: 5 }, (_, i) => `https://www.sunsettampa.com/events/page/${i + 1}/`);
+  const sources = [
+    'https://shotgun.live/en/cities/tampa',
+    'https://dice.fm/browse/Tampa:27.947974:-82.457098',
+    ...sunsetPages
+  ];
+  return extractEventsWithFirecrawl(sources, 'concert');
+}
+
+async function fetchProfessionalEvents(): Promise<CalendarEvent[]> {
+  const eventbritePages = Array.from({ length: 5 }, (_, i) => `https://www.eventbrite.com/d/fl--tampa/events--next-month/ai/?page=${i + 1}`);
+  return extractEventsWithFirecrawl(eventbritePages, 'professional');
 }
 
 function toStubhubCalendarEvent(raw: any, idx: number): CalendarEvent | null {
@@ -365,7 +372,7 @@ function toStubhubCalendarEvent(raw: any, idx: number): CalendarEvent | null {
     date,
     time,
     location,
-    category: 'music',
+    category: 'concert',
     description,
     url
   };
@@ -494,7 +501,7 @@ function dedupeEvents(events: CalendarEvent[]): CalendarEvent[] {
   const seen = new Set<string>();
   const out: CalendarEvent[] = [];
   for (const ev of events) {
-    const key = `${(ev.title || '').toLowerCase()}|${ev.date}`;
+    const key = `${(ev.title || '').toLowerCase()}|${ev.date}|${(ev.category || '').toLowerCase()}`;
     if (seen.has(key)) continue;
     seen.add(key);
     out.push(ev);

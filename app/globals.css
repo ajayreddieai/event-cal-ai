@@ -79,6 +79,40 @@ img {
   gap: 32px;
 }
 
+.calendar-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.calendar-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-elevated);
+  font-size: 14px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.calendar-tab__icon {
+  font-size: 16px;
+}
+
+.calendar-tab.is-active {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.calendar-tab:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
 .calendar-page__header {
   display: flex;
   flex-direction: column;
@@ -415,6 +449,15 @@ img {
   .calendar-card,
   .event-panel {
     padding: 24px;
+  }
+
+  .calendar-tabs {
+    grid-template-columns: repeat(2, max-content);
+    justify-content: flex-start;
+  }
+
+  .calendar-tab {
+    padding: 12px 18px;
   }
 
   .calendar-day {

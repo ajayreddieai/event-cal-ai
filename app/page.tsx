@@ -2,6 +2,8 @@
 
 import React from 'react';
 
+type EventCategory = 'concert' | 'professional';
+
 type Event = {
   id: number;
   title: string;
@@ -9,7 +11,16 @@ type Event = {
   time: string;
   location: string;
   description: string;
+  category: EventCategory;
   url?: string;
+};
+
+const categoryFromPayload = (value: unknown): EventCategory => {
+  const raw = String(value ?? '').toLowerCase();
+  if (raw.includes('professional') || raw.includes('business') || raw.includes('tech')) {
+    return 'professional';
+  }
+  return 'concert';
 };
 
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -54,10 +65,16 @@ function timeToMinutes(time: string) {
   return hours * 60 + minutes;
 }
 
+const tabOptions: { id: EventCategory; label: string; icon: string }[] = [
+  { id: 'concert', label: 'Concerts', icon: '🎵' },
+  { id: 'professional', label: 'Professional', icon: '💼' }
+];
+
 export default function Page() {
   const [currentDate, setCurrentDate] = React.useState(() => new Date());
   const [events, setEvents] = React.useState<Event[]>([]);
   const [selectedDate, setSelectedDate] = React.useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = React.useState<EventCategory>('concert');
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -83,6 +100,7 @@ export default function Page() {
             time: String(event?.time ?? ''),
             location: String(event?.location ?? ''),
             description: String(event?.description ?? ''),
+            category: categoryFromPayload(event?.category),
             url: event?.url ? String(event.url) : undefined,
           }))
         );
@@ -91,7 +109,7 @@ export default function Page() {
           const seen = new Map<string, Event>();
           for (const item of list) {
             if (!item.date || !item.title) continue;
-            const key = `${item.title.toLowerCase()}|${item.date}`;
+            const key = `${item.title.toLowerCase()}|${item.date}|${item.category}`;
             if (!seen.has(key)) {
               seen.set(key, item);
             }
@@ -151,6 +169,22 @@ export default function Page() {
     };
   }, []);
 
+  const filteredEvents = React.useMemo(() => events.filter((event) => event.category === selectedTab), [events, selectedTab]);
+
+  const eventsByDate = React.useMemo(() => {
+    const map: Record<string, Event[]> = {};
+    for (const event of filteredEvents) {
+      if (!event.date) continue;
+      if (!map[event.date]) {
+        map[event.date] = [];
+      }
+      map[event.date].push(event);
+    }
+    return map;
+  }, [filteredEvents]);
+
+  const tabHasNoEvents = filteredEvents.length === 0;
+
   const selectDate = React.useCallback((date: Date, alignMonth = false) => {
     if (Number.isNaN(date.getTime())) return;
     if (alignMonth) {
@@ -163,18 +197,6 @@ export default function Page() {
     const preset = new Date(2025, 8, 1);
     selectDate(preset, true);
   }, [selectDate]);
-
-  const eventsByDate = React.useMemo(() => {
-    const map: Record<string, Event[]> = {};
-    for (const event of events) {
-      if (!event.date) continue;
-      if (!map[event.date]) {
-        map[event.date] = [];
-      }
-      map[event.date].push(event);
-    }
-    return map;
-  }, [events]);
 
   const now = new Date();
   const todayKey = dateKey(now.getFullYear(), now.getMonth(), now.getDate());
@@ -298,6 +320,24 @@ export default function Page() {
         <div className="calendar-page__layout">
           <section className="calendar-card" aria-label="Monthly calendar">
             <div className="calendar-card__top">
+              <div className="calendar-tabs" role="tablist" aria-label="Event category">
+                {tabOptions.map((tab) => {
+                  const isActive = selectedTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      className={`calendar-tab${isActive ? ' is-active' : ''}`}
+                      onClick={() => setSelectedTab(tab.id)}
+                    >
+                      <span className="calendar-tab__icon" aria-hidden="true">{tab.icon}</span>
+                      <span className="calendar-tab__label">{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
               <div className="calendar-card__controls">
                 <button type="button" className="nav-button nav-button--text" onClick={goToToday}>
                   Today
@@ -356,7 +396,7 @@ export default function Page() {
               <h2 className="event-panel__date">{selectedDateLabel ?? 'Select a day'}</h2>
               {selectedDate && (
                 <span className="event-panel__count">
-                  {eventCount} {eventCount === 1 ? 'event' : 'events'}
+                  {eventCount} {eventCount === 1 ? 'event' : 'events'} • {selectedTab === 'concert' ? 'Concerts' : 'Professional'}
                 </span>
               )}
             </header>
@@ -366,7 +406,11 @@ export default function Page() {
                 <p className="event-panel__empty">Choose a day to view its agenda.</p>
               )}
               {selectedDate && eventCount === 0 && (
-                <p className="event-panel__empty">No events scheduled.</p>
+                <p className="event-panel__empty">
+                  {tabHasNoEvents
+                    ? `No ${selectedTab === 'concert' ? 'concert' : 'professional'} events found.`
+                    : 'No events scheduled.'}
+                </p>
               )}
               {eventCount > 0 && (
                 <ul className="event-list">
