@@ -289,9 +289,11 @@ async function fetchFirecrawlEvents() {
 
   try {
     const firecrawl = new Firecrawl({ apiKey: FIRECRAWL_API_KEY });
+    const sunsetPages = Array.from({ length: 5 }, (_, i) => `https://www.sunsettampa.com/events/page/${i + 1}/`);
     const sources = [
       'https://shotgun.live/en/cities/tampa',
-      'https://dice.fm/browse/Tampa:27.947974:-82.457098'
+      'https://dice.fm/browse/Tampa:27.947974:-82.457098',
+      ...sunsetPages
     ];
 
     const results = await Promise.all(
